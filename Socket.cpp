@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/07 23:35:23 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/09 17:41:09 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             {
                 request.addToReqyest(buffer,r);
                 request.parseInfos();
-                exit(0);
             }
             else
             {
@@ -163,6 +162,8 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
         {
             if(client.getHeaderInfos()["METHOD"] == "GET")
                 handlGetRequest(client, client.file);
+            else if(client.getHeaderInfos()["METHOD"] == "DELETE")
+                handlDeleteRequest(client);
         }
         catch (std::exception&)
         {

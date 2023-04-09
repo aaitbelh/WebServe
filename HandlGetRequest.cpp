@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/02 18:02:37 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/04/07 19:59:59 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/09 04:26:07 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void			sendHeader(Client& client, std::ifstream& file)
         return;
     client.getRes().fillTheHeader(client);
     std::string req = client.getRes().getHeader();
+    std::cout << req << std::endl;
     int r = send(client.getSocket(), req.c_str(), req.length(), 0);
     if(!r)
         throw std::exception();

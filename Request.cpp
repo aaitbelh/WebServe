@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/07 23:35:29 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/09 03:32:49 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,8 +86,6 @@ void    Request::openFile(std::string& extention)
     std::string name(ss.str());
     std::cout<<"name ---:::  "<<name<<std::endl;
     fd = open(name.c_str(), 664, O_CREAT);
-    //     std::cout<<"----------\n";
-    //     exit(0);
 }
 
 void    Request::postRequestHandl(const char *bufefr, int r)

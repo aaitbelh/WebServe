@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:56 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/05 21:50:23 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/09 17:40:54 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,4 +34,5 @@ char*			get_name(Client& client);
 void			sendHeader(Client& client);
 void			sendBody(Client& client);
 void 			handlGetRequest(Client& client, std::ifstream& file);
+void 			handlDeleteRequest(Client& client);
 #endif

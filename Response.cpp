@@ -6,13 +6,12 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/07 23:32:30 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/09 17:36:33 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "includes.hpp"
 
-int i;
 void Response::fillTheBody(Client &client)
 {   
 
@@ -26,14 +25,12 @@ void Response::fillTheBody(Client &client)
         DIR *dir = NULL;
         std::string path = client.getHeaderInfos()["URI"];
         struct dirent *ent = NULL;
-        path.erase(0, 1);
         if ((dir = opendir(path.c_str())) != NULL) {
-            path.append("/");
+            // path.append("/");
         while ((ent = readdir (dir)) != NULL) {
                 if(ent->d_name[0] != '.')
                 {
                     std::string filename = ent->d_name;
-                    std::cout << filename << std::endl;
                     std::string str = "\n<li><a href=\"" + path + filename + "\">" + filename + "</a></li>";
                     this->body.append(str);  
                 }
@@ -66,7 +63,6 @@ int calcluateLen(std::string  path)
 
         std::string body;
         DIR *dir = NULL;
-        path.erase(0, 1);
         struct dirent *ent = NULL;
         if ((dir = opendir(path.c_str())) != NULL) {
         while ((ent = readdir (dir)) != NULL) {
@@ -86,28 +82,34 @@ void Response::fillTheHeader(Client &client)
 {
     std::map<std::string, std::string> &request = client.getRequest().getHeaderInfos();
     std::string filename = request["URI"];
-    filename.erase(0, 1);
+    // filename.erase(0, 1);
     struct stat buffer;
     std::stringstream s;
     stat(filename.c_str(), &buffer);
     client.file.open(filename);
     if(client.file.good() && S_ISDIR(buffer.st_mode))
     {
+        std::cout << "IS DIR " << std::endl;
         header = "HTTP/1.1 200 OK\r\n";   
         filename = "listing-dir.html";
         client.is_dir = 1;
-        client.file.open(filename);
+        client.file.close();
+        client.file.clear();
+        client.file.open("listing-dir.html");
+        std::cout << client.file.is_open() <<  " && " << client.file.good() << std::endl;
     }
     else
     {
         if(client.file.is_open())
         {
-            header = "HTTP/1.1 200 OK\r\n";   
+            header = "HTTP/1.1 200 OK\r\n";
         }
         else
         {
             header = "HTTP/1.1 404 KO\r\n";
-            filename  = "404.html";
+            filename  = "public/404.html";
+            client.file.close();
+            client.file.clear();
             client.file.open(filename);
         }
     }
