@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/09 17:36:33 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/10 05:26:31 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,14 +89,12 @@ void Response::fillTheHeader(Client &client)
     client.file.open(filename);
     if(client.file.good() && S_ISDIR(buffer.st_mode))
     {
-        std::cout << "IS DIR " << std::endl;
         header = "HTTP/1.1 200 OK\r\n";   
         filename = "listing-dir.html";
         client.is_dir = 1;
         client.file.close();
         client.file.clear();
         client.file.open("listing-dir.html");
-        std::cout << client.file.is_open() <<  " && " << client.file.good() << std::endl;
     }
     else
     {

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/04/09 18:06:43 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/10 05:30:07 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,10 @@ void 			handlDeleteRequest(Client& client)
 {
     std::ifstream file;
     std::string filename = client.getHeaderInfos()["URI"];
+    filename.erase(0, 1);
     file.open(filename);
     struct stat buffer;
-    stat(filename.c_str(), &buffer);
-    if((file.is_open()  && file.good()) && access(filename.c_str(), X_OK))
+    if((file.is_open() && file.good()) && !access(filename.c_str(), W_OK))
     {
         if(S_ISDIR(buffer.st_mode))
         {
@@ -27,7 +27,7 @@ void 			handlDeleteRequest(Client& client)
             DIR *dir = NULL;
             dir = opendir(filename.c_str());
             if(!dir)
-                exit(204);
+                sendResponse(404, client);
             struct dirent *ent = NULL;
             while((ent = readdir(dir)) != NULL)
             {
@@ -35,13 +35,13 @@ void 			handlDeleteRequest(Client& client)
                     len++;
             }
             if(len)
-                exit(409);
+                sendResponse(204, client);
             rmdir(filename.c_str());
         }
         else
             remove(filename.c_str());
-        exit(200);
+        sendResponse(204, client);
     }
     else
-        exit(204); 
+        sendResponse(404, client);
 }

@@ -6,13 +6,14 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/07 04:01:00 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/12 02:03:43 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #include "includes.hpp"
+#include "pars/parsing.hpp"
 
 class Response;
 class Client
@@ -34,6 +35,7 @@ class Client
     int    writable;
     bool   is_dir;
     std::ifstream file;
+    t_server server;
 private:
     SOCKADDRE   address;
     SOCKET      sockett;
