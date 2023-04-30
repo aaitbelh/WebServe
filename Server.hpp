@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:32 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/12 02:02:58 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/29 12:09:10 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,17 +28,16 @@
 
 class Server
 {
-private:
-    Socket  socketListen;
-    std::list<Client>   clientList;
-    t_server server;
-public:
-    Server(std::string host, std::string port);
-    void serverRun(t_server &server);
-    ~Server();
+    private:
+        Socket  socketListen;
+        std::list<Client>   clientList;
+        t_server server;
+    public:
+        Server(std::string host, std::string port);
+        void serverRun(t_server &server);
+		ParsConf pars;
+        ~Server();
 };
-
-//35
 
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/12 02:03:54 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/29 12:39:13 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@ void Server::serverRun(t_server &server)
         if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
             throw std::exception();
         acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
+		if(clientList.begin()->isitnew())
+			clientList.begin()->parsingInfos = this->pars;
         std::list<Client>::iterator i = clientList.begin(), j;
         i->server = server;
         j = i;
@@ -39,13 +41,11 @@ Server::Server(std::string host, std::string port):socketListen(host.c_str(), po
 {
     if (socketListen() < 0)
         throw std::exception();
-    
 }
 
 Server::~Server()
 {
 }
-
 
 int main(int ac, char **av)
 {
@@ -54,8 +54,8 @@ int main(int ac, char **av)
         ParsConf pars;
         pars.countserver(av[1]);
         pars.fill_server();
-        std::vector<t_location>::iterator it = pars.getAll_locations(pars.servers.begin());
         Server s(pars.servers[0].server_map["host"].front(), pars.servers[0].server_map["listen"].front());
+		s.pars = pars;
         s.serverRun(pars.servers[0]);
         return (0);
     }

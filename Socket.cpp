@@ -6,11 +6,11 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/12 05:31:04 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/30 19:12:06 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes.hpp"
+#include "Socket.hpp"
 
 Socket::Socket(std::string host, std::string service)
 {
@@ -41,7 +41,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
     if (b)
     {
-        std::cerr<<"error in bind(): "<< strerror(b)<<std::endl;
+        std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
         socketfd = -1;
         return ;
     }
@@ -140,18 +140,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             {
                 request.addToReqyest(buffer,r);
                 request.parseInfos();
+				// std::cout << request.getHttpRequest() << std::endl;
+                request.setAllinfos(client);
             }
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
-                {
                     request.postRequestHandl(buffer, r);
-                }
                 else
-                {
                     request.addToReqyest(buffer, r);
-
-                }
             }
         }
         client.writable = 1;
@@ -166,7 +163,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             else if(client.getHeaderInfos()["METHOD"] == "DELETE")
                 handlDeleteRequest(client);
         }
-        catch (std::exception&)
+        catch (std::exception)
         {
             close(client.getSocket());
             clientList.erase(i);
@@ -177,18 +174,19 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 void 			sendResponse(int status, Client& client)
 {
     std::map<int, std::string> status_code;
-    status_code[__NOTFOUND] = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>";
-    status_code[__BADREQUEST] = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>";
-    status_code[__FORBIDDEN] = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>403 Forbidden</h1></body></html>\r\n";
-    status_code[__METHODNOTALLOWED] = "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 57\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>405 Method Not Allowed</h1></body></html>\r\n";
-    status_code[__REQUESTTIMEOUT] = "HTTP/1.1 408 Request Timeout\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>408 Request Timeout</h1></body></html>";
-    status_code[__BADGATEWAY] = "HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>502 Bad Gateway</h1></body></html>";
-    status_code[__SUCCESS] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
-    status_code[__NOTIMPLEMENTED] = "HTTP/1.1 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>501 Not Implemented</h1></body></html>";
-    status_code[__CONFLICT] = "HTTP/1.1 409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
-    status_code[__NOCONTENT] = "HTTP/1.1 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
+    status_code[__NOTFOUND] = "404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>";
+    status_code[__BADREQUEST] = "400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>";
+    status_code[__FORBIDDEN] = "403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>403 Forbidden</h1></body></html>\r\n";
+    status_code[__METHODNOTALLOWED] = "405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 57\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>405 Method Not Allowed</h1></body></html>\r\n";
+    status_code[__REQUESTTIMEOUT] = "408 Request Timeout\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>408 Request Timeout</h1></body></html>";
+    status_code[__BADGATEWAY] = "502 Bad Gateway\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>502 Bad Gateway</h1></body></html>";
+    status_code[__SUCCESS] = "200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
+    status_code[__NOTIMPLEMENTED] = "501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>501 Not Implemented</h1></body></html>";
+    status_code[__CONFLICT] = "409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
+    status_code[__NOCONTENT] = "204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
     std::string req = status_code[status];
-    std::cout << req << std::endl;
+	req.insert(0, "HTTP/1.1 ");
+    // std::cout << req << std::endl;
     int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
     throw std::exception();
     

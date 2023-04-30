@@ -6,15 +6,15 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/10 05:26:31 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/30 20:27:21 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "includes.hpp"
+#include "Response.hpp"
 
 void Response::fillTheBody(Client &client)
 {   
-
     std::string body;
     char buf[1024];
     client.file.read(buf, 1024);
@@ -32,7 +32,7 @@ void Response::fillTheBody(Client &client)
                 {
                     std::string filename = ent->d_name;
                     std::string str = "\n<li><a href=\"" + path + filename + "\">" + filename + "</a></li>";
-                    this->body.append(str);  
+                    this->body.append(str);
                 }
         }
         this->body.append("\n</ul></body></html>");
@@ -61,28 +61,45 @@ std::string Response::getFileType(std::string filename)
 int calcluateLen(std::string  path)
 { 
 
-        std::string body;
-        DIR *dir = NULL;
-        struct dirent *ent = NULL;
-        if ((dir = opendir(path.c_str())) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
-                if(ent->d_name[0] != '.')
-                {
-                    std::string filename = ent->d_name;
-                    std::string str = "\n<li><a href=\"" + path + "/" + filename + "\">" + filename + "</a></li>";
-                    body.append(str);  
-                }
-        }
-            body.append("\n</ul></body></html>");
-        }
-        closedir(dir);
-        return body.length();
+    std::string body;
+    DIR *dir = NULL;
+    struct dirent *ent = NULL;
+    if ((dir = opendir(path.c_str())) != NULL) {
+    while ((ent = readdir (dir)) != NULL) {
+            if(ent->d_name[0] != '.')
+            {
+                std::string filename = ent->d_name;
+                std::string str = "\n<li><a href=\"" + path + "/" + filename + "\">" + filename + "</a></li>";
+                body.append(str);  
+            }
+    }
+        body.append("\n</ul></body></html>");
+    }
+    closedir(dir);
+    return body.length();
+}
+std::string Response::find_filename(Client &client)
+{
+	std::string filename;
+	std::ifstream file;
+	for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
+	{
+		std::string path =  client.GetClientinfos().root + client.GetClientinfos().location_div.location_path + "/"+ *it;
+		file.open(path);
+		if(file.is_open() && file.good())
+		{
+			return path;
+		}
+	}
+	std::string path = "/Users/aaitbelh/Desktop/WEBSERVE/" + client.GetClientinfos().URI;
+	std::cout << "+++++++++> " << path << std::endl;
+	return path;
 }
 void Response::fillTheHeader(Client &client)
 {
     std::map<std::string, std::string> &request = client.getRequest().getHeaderInfos();
-    std::string filename = request["URI"];
-    // filename.erase(0, 1);
+    std::string filename = find_filename(client);
+	std::cout << "------->" << filename << std::endl;
     struct stat buffer;
     std::stringstream s;
     stat(filename.c_str(), &buffer);
@@ -104,6 +121,7 @@ void Response::fillTheHeader(Client &client)
         }
         else
         {
+			// sendResponse(404, client);
             header = "HTTP/1.1 404 KO\r\n";
             filename  = "public/404.html";
             client.file.close();
@@ -121,9 +139,7 @@ void Response::fillTheHeader(Client &client)
     date = buf;
     header.append("Date: " + date + "\r\n");
     if(client.is_dir)
-    {
         s <<  buffer.st_size + calcluateLen(request["URI"]);    
-    }
     else
         s << buffer.st_size;
     header.append("Content-Length: " + s.str() + "\r\n");
@@ -152,7 +168,7 @@ Response::Response()
 }
 void Response::setResponse(const std::string & str)
 {
-this->httpResponse = str;  
+	this->httpResponse = str;  
 }
 Response::~Response()
 {

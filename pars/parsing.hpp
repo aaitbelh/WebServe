@@ -1,7 +1,7 @@
 #ifndef PARSING
 #define PARSING
 
-#include <iostream>
+#include <iostream>	
 #include <fstream>
 #include <vector>
 #include <map>
@@ -14,11 +14,22 @@
 #define ELEM 21
 
 using namespace std;
-
 typedef struct s_location
 {
 	std::string location_path;
-	std::map<string, std::list<string> > location_map;
+	std::map<std::string, std::list<std::string> > location_map;
+	bool isExist(const std::string &element)
+	{
+		try
+		{
+			location_map.at(element);
+		}
+		catch(std::exception)
+		{
+			return 0;
+		}
+		return 1;
+	}
 	std::list<std::string>& getElemetnBylocation(const std::string& element)
 	{
 		return location_map[element];
@@ -30,6 +41,11 @@ typedef struct s_server
 	std::map<std::string, std::list<std::string> > server_map;
 	std::map<int, std::string>  error_page;
 	std::vector <t_location> locations;
+	std::list<std::string>& getFromServerMap(std::string element)
+	{
+		return server_map[element];
+	}
+
 } t_server;
 
 

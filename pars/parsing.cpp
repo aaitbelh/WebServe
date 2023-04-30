@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/04/11 01:51:05 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/30 18:41:31 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,10 @@ void ParsConf::fill_server_element()
 			int _index = check_validelem1(mylist.front());
 			if(_index != -1)
 			{
+				std::string key = mylist.front();
 				duplocation.push_back(mylist.front());
-				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(loc_arr[_index], mylist));
+				mylist.pop_front();
+				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(key, mylist));
 			}
 		}
 		check_duplcates(duplicate, 0);
@@ -279,3 +281,7 @@ std::vector<t_location>::iterator ParsConf::getAll_locations(std::vector <t_serv
 {
 	return it->locations.begin();
 }
+
+// std::list<std::string>& ParsConf::getFromServerMap(std::string element)
+// {
+// }

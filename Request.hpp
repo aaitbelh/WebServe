@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/04/07 23:20:15 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/04/30 11:04:55 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #define REQUEST_HPP
 #include "includes.hpp"
 
-
+class Client;
 class Request
 {
 public:
@@ -34,6 +34,7 @@ public:
     std::string getContentType();
     void    postRequestHandl(const char *bufefr, int r);
     void    openFile(std::string& extention);
+	void    setAllinfos(Client &client);
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -43,7 +44,6 @@ private:
     static int        status;
     FILE             *tmp;
     std::ofstream MyFile;
-    //...
 };
 
 
