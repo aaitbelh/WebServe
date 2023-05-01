@@ -70,12 +70,15 @@ void Request::parseInfos()
     }
     if (HeaderInfos["METHOD"] == "POST")
     {
-        openFile(types_rev[HeaderInfos["Content-Length"]]);
-        postRequestHandl(httpRequestTmp.c_str(), httpRequestTmp.length());
+        if (HeaderInfos["Transfer-Encoding"] != "chunked")
+            openFile(types_rev[HeaderInfos["Content-Type"]]);
+        else
+            openFile(types_rev[HeaderInfos["Content-Type"]], true);
+        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
     }
         //setToFile(httpRequestTmp.substr(2));
 }
-void    Request::openFile(std::string& extention)
+void    Request::openFile(std::string& extention, bool append)
 {
     std::stringstream ss;
 
@@ -84,16 +87,84 @@ void    Request::openFile(std::string& extention)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
-    std::cout<<"name ---:::  "<<name<<std::endl;
-    fd = open(name.c_str(), 664, O_CREAT);
+    if (append)
+        MyFile.open(name, std::ios::app);
+    else
+        MyFile.open(name);
 }
 
-void    Request::postRequestHandl(const char *bufefr, int r)
+int stringToHexx(std::string& hexString)
 {
-    if (write(fd, bufefr, r) < 0)
+    int intValue;
+
+    std::stringstream ss;
+    ss << std::hex << hexString; // convert to integer
+    ss >> intValue;
+    return (intValue);
+}
+
+char    *Request::removeContentLinght(char *buffer, int *r)
+{
+    int i = 0;
+    while (buffer[i] && buffer[i] != '\r' && buffer[i + 1] != '\n')
+        i++;
+    if (!buffer[i])
     {
-        std::cerr<<"can't write"<<std::endl;
+        chunkOfChuk.append(buffer);
+        throw std::out_of_range("not completed");
     }
+    std::string tem(buffer, buffer + i);
+    std::cout<<"<<<<: "<<tem<<"\n...  "<<i<<std::endl;
+    std::cout<<"rrrr: "<<*r<<std::endl;
+    i += 2;
+    *r -= i;
+    chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
+    std::cout<<">>>>: "<<chunkedSize<<std::endl;
+    if (!chunkedSize)
+        throw std::out_of_range("end");
+    return buffer + i;
+}
+
+void    Request::postRequestHandl(const char *buffer, int r)
+{
+    if (HeaderInfos["Transfer-Encoding"] != "chunked")
+    {
+        MyFile.write(buffer, r);
+    }
+    else
+    {
+        try
+        {
+            std::string tem(chunkOfChuk + std::string(buffer, r));
+            if (chunkOfChuk.size())
+            {
+                r = tem.length();
+                buffer = removeContentLinght(const_cast<char *>(tem.c_str()), &r);
+            }
+            if (chunkedSize < r && chunkedSize > 0)
+            {
+                MyFile.write(buffer, chunkedSize);
+                buffer = buffer + chunkedSize + 2;
+                r -= chunkedSize + 2;
+                chunkedSize = 0;
+                chunkOfChuk.clear();
+				resevedBytes += chunkedSize;
+            }
+            if (r > 0)
+            {
+                if (chunkedSize <= 0)
+                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r);
+                MyFile.write(buffer, r);
+                chunkedSize -= r;
+                chunkOfChuk.clear();
+				resevedBytes += r;
+            }
+        }
+        catch(const std::string& e)
+        {
+            //! send response drop clinet when uplowd is finished 
+        }
+    }   
 }
 
 size_t  Request::getLnght(){ return (resevedBytes);}

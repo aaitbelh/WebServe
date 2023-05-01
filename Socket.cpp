@@ -19,7 +19,7 @@ Socket::Socket(std::string host, std::string service)
 
 Socket::~Socket()
 {
-    
+
 }
 
 void    Socket::creatSocket(std::string& host, std::string& service)
@@ -114,6 +114,7 @@ char* get_name(Client& client)
                 NI_NUMERICHOST);
     return address_buffer;
 }
+
 int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::list<Client>& clientList, std::list<Client>::iterator& i)
 {
     
@@ -128,6 +129,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             clientList.erase(i);
             return (-1);
         }
+        buffer[r] = '\0';
         if(r <= 0)
         {
             close(client.getSocket());
@@ -147,7 +149,18 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
-                    request.postRequestHandl(buffer, r);
+                {
+                    try
+                    {
+                        request.postRequestHandl(buffer, r);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        //! HANDLE THIS 
+                    }
+                    
+
+                }
                 else
                     request.addToReqyest(buffer, r);
             }

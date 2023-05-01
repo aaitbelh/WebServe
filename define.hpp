@@ -26,7 +26,7 @@
 #define     FINISHED_BODY 		1
 #define     NOT_FINISHED_BODY	0
 
-#define     BUFFER_SIZE 		1024
+#define     BUFFER_SIZE 		8192
 
 
 #define     uploadsPath			"/Users/ael-hayy/Desktop/webb/uploads"
@@ -36,5 +36,7 @@ typedef struct sockaddr_storage SOCKADDRE;
 typedef     int         REQUES_TYPE;
 
 typedef     int         SOCKET;
+
+//typedef    std::map<std::string, std::string>   strMap;
 
 #endif

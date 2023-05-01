@@ -91,7 +91,7 @@ std::string Response::find_filename(Client &client)
 			return path;
 		}
 	}
-	std::string path = "/Users/aaitbelh/Desktop/WEBSERVE/" + client.GetClientinfos().URI;
+	std::string path = "/Users/ael-hayy/Desktop/webayoub" + client.GetClientinfos().URI;
 	std::cout << "+++++++++> " << path << std::endl;
 	return path;
 }

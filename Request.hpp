@@ -33,8 +33,9 @@ public:
     size_t  getResevedByts();
     std::string getContentType();
     void    postRequestHandl(const char *bufefr, int r);
-    void    openFile(std::string& extention);
 	void    setAllinfos(Client &client);
+    char    *removeContentLinght(char *buffer, int *r);
+    void    openFile(std::string& extention, bool append = false);
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -42,6 +43,8 @@ private:
     std::string httpRequest;
     std::map<std::string, std::string> HeaderInfos;
     static int        status;
+    std::string         chunkOfChuk;
+    size_t              chunkedSize;
     FILE             *tmp;
     std::ofstream MyFile;
 };
