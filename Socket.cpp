@@ -19,6 +19,7 @@ Socket::Socket(std::string host, std::string service)
 
 Socket::~Socket()
 {
+    
 }
 
 void    Socket::creatSocket(std::string& host, std::string& service)
