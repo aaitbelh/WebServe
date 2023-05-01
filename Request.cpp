@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/30 20:22:49 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/01 11:39:34 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ void Request::parseInfos()
 
     HeaderInfos["METHOD"] =  httpRequest.substr(0, httpRequest.find(" "));
     HeaderInfos["URI"] = httpRequest.substr(httpRequest.find(" ") + 1, httpRequest.find("HTTP") - (httpRequest.find(" ") + 2));
+	HeaderInfos["VERSION"] = httpRequest.substr(httpRequest.find("HTTP"), httpRequest.find("\r\n") - httpRequest.find("HTTP"));
     size_t pos = 0;
     pos = httpRequest.find("\r\n") + 2;
     std::string httpRequestTmp = httpRequest.substr(pos);
@@ -84,7 +85,6 @@ void    Request::openFile(std::string& extention)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
-    std::cout<<"name ---:::  "<<name<<std::endl;
     fd = open(name.c_str(), 664, O_CREAT);
 }
 
@@ -109,14 +109,32 @@ const std::string&     Request::getHttpRequest() { return (httpRequest);}
 
 size_t  Request::getResevedByts() {return (resevedBytes);}
 
-void	matchTheLocation(Client& client, std::vector<t_server> servers)
+void setTherootLocation(Client &client, std::vector<t_server>& servers)
 {
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
 		for(std::vector<t_location>::iterator it = servers[i].locations.begin();it != servers[i].locations.end(); ++it)
 		{
-			if(client.GetClientinfos().URI == it->location_path)
+			if(it->location_path == "/")
 			{
+				client.GetClientinfos().location_div = *it;
+				return ;
+			}
+		}
+	}
+}
+
+void	matchTheLocation(Client& client, std::vector<t_server> servers)
+{
+	bool isfounded = 0;
+	struct all_infos rootLocation;
+	for(size_t i = 0; i < servers.size(); ++i)
+	{
+		for(std::vector<t_location>::iterator it = servers[i].locations.begin();it != servers[i].locations.end(); ++it)
+		{
+			if(client.GetClientinfos().URI == it->location_path || it->location_path == "/")
+			{
+				isfounded = 1;
 				struct all_infos &tmpstruct = client.GetClientinfos();
 				tmpstruct.server_name = servers[i].server_map["server_name"].front();
 				if(it->isExist("allow_methods"))
@@ -131,7 +149,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 							else if(*lst_it == "POST")
 								tmpstruct.allow_methods[1] = 1;
 							else if(*lst_it == "DELETE")
-								tmpstruct.allow_methods[2] = 1;							
+								tmpstruct.allow_methods[2] = 1;				
 						}
 					}
 					lst.clear();
@@ -163,8 +181,14 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				if(it->isExist("root"))
 					tmpstruct.root = it->getElemetnBylocation("root").front();
 				tmpstruct.location_div = *it;
+				return ;
 			}
 		}	
+	}
+	if(!isfounded)
+	{
+		std::cout << "got here " << std::endl;
+		client.GetClientinfos() = rootLocation;
 	}
 }
 
@@ -176,9 +200,7 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
 		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
-		{
 			servers.push_back(pars.servers[i]);
-		}
 	}
 	return servers;
 }

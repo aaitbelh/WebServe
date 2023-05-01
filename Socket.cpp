@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/30 19:12:06 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/01 11:29:36 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             {
                 request.addToReqyest(buffer,r);
                 request.parseInfos();
-				// std::cout << request.getHttpRequest() << std::endl;
                 request.setAllinfos(client);
             }
             else
@@ -186,7 +185,6 @@ void 			sendResponse(int status, Client& client)
     status_code[__NOCONTENT] = "204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
     std::string req = status_code[status];
 	req.insert(0, "HTTP/1.1 ");
-    // std::cout << req << std::endl;
     int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
     throw std::exception();
     
