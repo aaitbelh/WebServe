@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:54 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/30 11:11:06 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/01 11:16:49 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Response
         void            setResponse(const std::string & str);
         std::string     getFileType(std::string filename);
 		std::string		ind_filename(Client &client);
+		void checkRediraction(Client &client);
     private:
         std::string header;
         std::string body;
