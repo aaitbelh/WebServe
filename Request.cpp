@@ -163,7 +163,6 @@ void    Request::postRequestHandl(const char *buffer, int r)
         }
         catch(const std::string& e)
         {
-            // if (e == "end")
             //     ! send response drop clinet when uplowd is finished 
         }
         catch(const int& i) {}
