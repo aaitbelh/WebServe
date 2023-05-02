@@ -122,7 +122,7 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
-        throw std::out_of_range("end");
+        throw std::out_of_range(1);
     return buffer + i;
 }
 
@@ -163,8 +163,10 @@ void    Request::postRequestHandl(const char *buffer, int r)
         }
         catch(const std::string& e)
         {
-            //! send response drop clinet when uplowd is finished 
+            // if (e == "end")
+            //     ! send response drop clinet when uplowd is finished 
         }
+        catch(const int& i) {}
     }   
 }
 

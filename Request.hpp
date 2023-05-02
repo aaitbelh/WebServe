@@ -31,7 +31,6 @@ public:
     std::map<std::string, std::string>& getHeaderInfos();
     void setToFile(const std::string& str);
     size_t  getResevedByts();
-    std::string getContentType();
     void    postRequestHandl(const char *bufefr, int r);
 	void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
