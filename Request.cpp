@@ -30,6 +30,8 @@ Request::Request(/* args */): resevedBytes(0)
     types_rev["image/x-icon"] = "ico";
     types_rev["image/svg+xml"] = "svg";
     types_rev["application/octet-stream"] = "default";
+    types_rev["text/php"] = "php";
+    types_rev["text/x-perl-script"] = "perl";
 }
 
 Request::~Request()
@@ -163,6 +165,12 @@ void    Request::postRequestHandl(const char *buffer, int r)
         }
         catch(const std::string& e)
         {
+            // if (types_rev[HeaderInfos["Content-Type"]] == "perl"  || types_rev[HeaderInfos["Content-Type"]] == "php")
+            //!     CGIII A MAMILLA
+            // else
+            // {
+            //!     dyali
+            // }
             //     ! send response drop clinet when uplowd is finished 
         }
         catch(const int& i) {}
