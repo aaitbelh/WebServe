@@ -142,24 +142,13 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             if (!request.getLnght())
             {
                 request.addToReqyest(buffer,r);
-                request.parseInfos();
+                request.parseInfos(i, clientList); // if throwing exiption
                 request.setAllinfos(client);
             }
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
-                {
-                    try
-                    {
-                        request.postRequestHandl(buffer, r);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        //! HANDLE THIS 
-                    }
-                    
-
-                }
+                        request.postRequestHandl(buffer, r, i, clientList);
                 else
                     request.addToReqyest(buffer, r);
             }
