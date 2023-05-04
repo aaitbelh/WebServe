@@ -6,7 +6,7 @@
 #    By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/20 10:37:44 by ael-hayy          #+#    #+#              #
-#    Updated: 2023/05/01 11:41:57 by aaitbelh         ###   ########.fr        #
+#    Updated: 2023/05/04 11:55:46 by aaitbelh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ FILES = Socket.cpp HandlGetRequest.cpp Client.cpp Request.cpp Response.cpp Serve
 OBJS = $(FILES:.cpp=.o)
 
 CC = clang++
-CFLAGS = -std=c++98 -g3 -g -fsanitize=address
+CFLAGS = -std=c++98 -g3 -fsanitize=address
 all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)

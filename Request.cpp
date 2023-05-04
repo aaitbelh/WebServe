@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/01 11:39:34 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/04 11:59:11 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,7 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
-        throw   1;
+        throw exception();
     return buffer + i;
 }
 
@@ -215,11 +215,12 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 {
 	bool isfounded = 0;
 	struct all_infos rootLocation;
+	std::string path;
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
 		for(std::vector<t_location>::iterator it = servers[i].locations.begin();it != servers[i].locations.end(); ++it)
 		{
-			if(client.GetClientinfos().URI == it->location_path || it->location_path == "/")
+			if(client.GetClientinfos().URI.substr(0, it->location_path.size()) == it->location_path && it->location_path.size() > path.size())
 			{
 				isfounded = 1;
 				struct all_infos &tmpstruct = client.GetClientinfos();
@@ -273,10 +274,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 		}	
 	}
 	if(!isfounded)
-	{
-		std::cout << "got here " << std::endl;
 		client.GetClientinfos() = rootLocation;
-	}
 }
 
 std::vector<t_server> GettheServer(ParsConf &pars, Client &client)

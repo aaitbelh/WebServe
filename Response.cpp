@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/01 13:29:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/03 22:33:05 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,23 +22,9 @@ void Response::fillTheBody(Client &client)
     this->body = body;
     if(client.is_dir && client.file.eof())
     {
-        DIR *dir = NULL;
-        std::string path = client.dirname;
-        struct dirent *ent = NULL;
-        if ((dir = opendir(path.c_str())) != NULL) {
-            // path.append("/");
-        while ((ent = readdir (dir)) != NULL) {
-                if(ent->d_name[0] != '.')
-                {
-                    std::string filename = ent->d_name;
-                    std::string str = "\n<li><a href=\"" + path + filename + "\">" + filename + "</a></li>";
-                    this->body.append(str);
-                }
-        }
-        this->body.append("\n</ul></body></html>");
-        }
-        closedir(dir);
-        client.is_dir = 0;
+		this->body.append(client.dir_body);
+		client.dir_body.clear();
+		client.is_dir = 0;
     }
     if(client.file.eof() && body.empty())
         throw std::exception(); 
@@ -58,38 +44,47 @@ std::string Response::getFileType(std::string filename)
         return types[extention];
     return types["default"];
 }
-int calcluateLen(std::string  path)
+int calcluateLen(Client &client)
 { 
-    std::string body;
-    DIR *dir = NULL;
-	std::cout << path << std::endl;
+	DIR *dir = NULL;
+    std::string path = client.dirname;
+	std::string nameofdir;
+	size_t i; 
+	for(i = path.size(); i > 0; --i)
+		if(path[i] == '/')
+			break;
+	nameofdir = path.substr(i + 1, path.size() - i);
     struct dirent *ent = NULL;
     if ((dir = opendir(path.c_str())) != NULL) {
-    while ((ent = readdir (dir)) != NULL) {
+        // path.append("/");
+    while ((ent = readdir(dir)) != NULL) {
             if(ent->d_name[0] != '.')
             {
                 std::string filename = ent->d_name;
-                std::string str = "\n<li><a href=\"" + path + "/" + filename + "\">" + filename + "</a></li>";
-                body.append(str);  
+                std::string str = "\n<li><a href=\"" + nameofdir + "/" + filename + "\">" + filename + "</a></li>";
+                client.dir_body.append(str);
             }
     }
-    	body.append("\n</ul></body></html>");
-		closedir(dir);
+    client.dir_body.append("\n</ul></body></html>");
+    closedir(dir);
     }
-    return body.length();
+    return client.dir_body.length();
 }
 std::string Response::find_filename(Client &client)
 {
 	std::string filename;
 	std::ifstream file;
-	for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
+	if(client.getHeaderInfos()["URI"] == client.GetClientinfos().location_div.location_path)
 	{
-		std::string path =  client.GetClientinfos().root + client.GetClientinfos().location_div.location_path + "/"+ *it;
-		file.open(path);
-		if(file.is_open() && file.good())
-			return path;
+		for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
+		{
+			std::string path =  client.GetClientinfos().root + client.GetClientinfos().location_div.location_path + "/"+ *it;
+			file.open(path);
+			if(file.is_open() && file.good())
+				return path;
+		}
 	}
-	return client.GetClientinfos().root + "/" + client.getHeaderInfos()["URI"];
+	return client.GetClientinfos().root + client.getHeaderInfos()["URI"];
 }
 void Response::checkRediraction(Client &client)
 {
@@ -111,7 +106,6 @@ void Response::fillTheHeader(Client &client)
 	checkRediraction(client);
     std::map<std::string, std::string> &request = client.getRequest().getHeaderInfos();
     std::string filename = find_filename(client);
-	std::cout << "-------->"  << filename << std::endl;
     struct stat buffer;
     std::stringstream s;
     stat(filename.c_str(), &buffer);
@@ -129,17 +123,30 @@ void Response::fillTheHeader(Client &client)
     }
     else
     {
-        if(client.file.is_open())
+        if(client.file.is_open() && !access(filename.c_str(), R_OK))
             header += " 200 OK\r\n";
-        else
-        {
+		else if(client.file.is_open() && client.GetClientinfos().autoindex)
+		{
 			// sendResponse(404, client);
             header += " 404 KO\r\n";
             filename  = "public/404.html";
             client.file.close();
             client.file.clear();
             client.file.open(filename);
+			if(!client.file.is_open() || !client.file.good())
+				sendResponse(404, client);
         }
+		else
+		{
+			sendResponse(403, client);
+            header += " 403 KO\r\n";
+            filename  = "public/403.html";
+            client.file.close();
+            client.file.clear();
+            client.file.open(filename);
+			if(!client.file.is_open() || !client.file.good())
+				sendResponse(403, client);
+		}
     }
     stat(filename.c_str(), &buffer);
     header.append("Connection: close\r\n");
@@ -153,7 +160,7 @@ void Response::fillTheHeader(Client &client)
     date = buf;
     header.append("Date: " + date + "\r\n");
     if(client.is_dir)
-        s <<  buffer.st_size + calcluateLen(client.dirname);    
+        s <<  buffer.st_size + calcluateLen(client);    
     else
         s << buffer.st_size;
     header.append("Content-Length: " + s.str() + "\r\n");
@@ -189,3 +196,4 @@ Response::~Response()
 }
 
 std::string&    Response::getResponse() {return (httpResponse);}
+

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/01 11:53:35 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/01 21:04:10 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ class Client
 	bool isitnew();
 	ParsConf	parsingInfos;
 	struct all_infos& GetClientinfos();
+	std::string dir_body;
 	std::string dirname;
 private:
     SOCKADDRE   address;
