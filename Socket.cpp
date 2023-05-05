@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/01 17:34:50 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/04 21:05:50 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
         client.setSocket(sock);
         if (client.getSocket() < 0)
         {
-            std::cerr<<"socket < 0"<<strerror(errno)<<std::endl;
+            std::cerr<< "socket < 0" << strerror(errno) << std::endl;
             return (-1);
         }
         clientList.push_front(client);
@@ -117,7 +117,6 @@ char* get_name(Client& client)
 
 int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::list<Client>& clientList, std::list<Client>::iterator& i)
 {
-    
     if (FD_ISSET(client.getSocket(), readSet))
     {
         char    buffer[BUFFER_SIZE + 1];
@@ -152,12 +151,12 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     try
                     {
                         request.postRequestHandl(buffer, r);
+                        close(client.getSocket());
+                        clientList.erase(i);
                     }
                     catch(const std::exception& e)
                     {
-                        //! HANDLE THIS 
                     }
-                    
 
                 }
                 else
@@ -198,8 +197,7 @@ void 			sendResponse(int status, Client& client)
     status_code[__CONFLICT] = "409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
     status_code[__NOCONTENT] = "204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
     std::string req = status_code[status];
-	req.insert(0, "HTTP/1.1 ");
+    req.insert(0, client.getHeaderInfos()["VERSION"]);
     int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
     throw std::exception();
-    
 }

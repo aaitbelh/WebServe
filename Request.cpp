@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/04 11:59:11 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 10:56:59 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,11 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
+    {
+        std::cout << "GOT HREE" << std::endl;
         throw exception();
+
+    }
     return buffer + i;
 }
 
