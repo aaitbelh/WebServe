@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/05 10:56:59 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 14:29:22 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
             openFile(types_rev[HeaderInfos["Content-Type"]], true);
         postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length(), i, clientList);
     }
-        //setToFile(httpRequestTmp.substr(2));
 }
 void    Request::openFile(std::string& extention, bool append)
 {
@@ -136,14 +135,15 @@ char    *Request::removeContentLinght(char *buffer, int *r)
 
 void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
+    try
+    {
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
+        throw std::exception();
     }
     else
     {
-        try
-        {
             std::string tem(chunkOfChuk + std::string(buffer, r));
             if (chunkOfChuk.size())
             {
@@ -173,18 +173,19 @@ void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
-        }
-        catch (const int d)
-        {
-                MyFile.close();
-                sendResponse(200, *i);
-                close(i->getSocket());
-                clientList.erase(i);
-            //     ! send response drop clinet when uplowd is finished 
-        }
         
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
+    }
+    catch (const int d)
+    {
+            std::cout << "HOOLA " << std::endl;
+            MyFile.close();
+            sendResponse(200, *i);
+            close(i->getSocket());
+            clientList.erase(i);
+        //     ! send response drop clinet when uplowd is finished 
+    }
 }
 
 size_t  Request::getLnght(){ return (resevedBytes);}

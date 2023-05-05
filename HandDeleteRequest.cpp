@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/02 20:56:56 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 14:08:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,7 @@
 void 			handlDeleteRequest(Client& client)
 {
     std::ifstream file;
-    std::string filename = client.getHeaderInfos()["URI"];
-    filename.erase(0, 1);
+    std::string filename = find_filename(client);
     file.open(filename);
     struct stat buffer;
     if((file.is_open() && file.good()) && !access(filename.c_str(), W_OK))

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/03 22:33:05 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 14:07:46 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ int calcluateLen(Client &client)
     }
     return client.dir_body.length();
 }
-std::string Response::find_filename(Client &client)
+std::string find_filename(Client &client)
 {
 	std::string filename;
 	std::ifstream file;

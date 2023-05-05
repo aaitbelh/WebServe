@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/05 13:48:29 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 14:27:03 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,8 @@ char* get_name(Client& client)
 
 int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::list<Client>& clientList, std::list<Client>::iterator& i)
 {
+    try
+    {
     if (FD_ISSET(client.getSocket(), readSet))
     {
         char    buffer[BUFFER_SIZE + 1];
@@ -147,7 +149,9 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                {
                         request.postRequestHandl(buffer, r, i, clientList);
+                }
                 else
                     request.addToReqyest(buffer, r);
             }
@@ -157,18 +161,16 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     if (FD_ISSET(client.getSocket(), writeSet) && client.writable)
     {
         
-        try
-        {
             if(client.getHeaderInfos()["METHOD"] == "GET")
                 handlGetRequest(client, client.file);
             else if(client.getHeaderInfos()["METHOD"] == "DELETE")
                 handlDeleteRequest(client);
-        }
-        catch (std::exception)
-        {
-            close(client.getSocket());
-            clientList.erase(i);
-        }
+    }
+    }
+    catch (std::exception)
+    {
+        close(client.getSocket());
+        clientList.erase(i);
     }
     return 1;
 }
