@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/04 21:05:50 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/05 13:48:29 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,24 +141,13 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             if (!request.getLnght())
             {
                 request.addToReqyest(buffer,r);
-                request.parseInfos();
+                request.parseInfos(i, clientList); // if throwing exiption
                 request.setAllinfos(client);
             }
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
-                {
-                    try
-                    {
-                        request.postRequestHandl(buffer, r);
-                        close(client.getSocket());
-                        clientList.erase(i);
-                    }
-                    catch(const std::exception& e)
-                    {
-                    }
-
-                }
+                        request.postRequestHandl(buffer, r, i, clientList);
                 else
                     request.addToReqyest(buffer, r);
             }

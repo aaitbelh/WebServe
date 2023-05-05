@@ -26,12 +26,12 @@ public:
     void                    setType(REQUES_TYPE reqType);
     REQUES_TYPE             getType();
     const std::string&     getHttpRequest();
-    void parseInfos();
+    void parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList);
     std::map<std::string, std::string>  types_rev;
     std::map<std::string, std::string>& getHeaderInfos();
     void setToFile(const std::string& str);
     size_t  getResevedByts();
-    void    postRequestHandl(const char *bufefr, int r);
+    void    postRequestHandl(const char *bufefr, int r, std::list<Client>::iterator& i, std::list<Client>& clientList);
 	void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
     void    openFile(std::string& extention, bool append = false);
@@ -43,7 +43,7 @@ private:
     std::map<std::string, std::string> HeaderInfos;
     static int        status;
     std::string         chunkOfChuk;
-    size_t              chunkedSize;
+    int              chunkedSize;
     FILE             *tmp;
     std::ofstream MyFile;
 };

@@ -51,7 +51,7 @@ void Request::setToFile(const std::string&  str)
     }
 }
 
-void Request::parseInfos()
+void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
 
     HeaderInfos["METHOD"] =  httpRequest.substr(0, httpRequest.find(" "));
@@ -77,7 +77,7 @@ void Request::parseInfos()
             openFile(types_rev[HeaderInfos["Content-Type"]]);
         else
             openFile(types_rev[HeaderInfos["Content-Type"]], true);
-        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
+        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length(), i, clientList);
     }
         //setToFile(httpRequestTmp.substr(2));
 }
@@ -113,8 +113,10 @@ char    *Request::removeContentLinght(char *buffer, int *r)
         i++;
     if (!buffer[i])
     {
+        std::cout<<"11\n";
         chunkOfChuk.append(buffer);
-        throw std::out_of_range("not completed");
+        return NULL;
+        std::cout<<"22\n";
     }
     std::string tem(buffer, buffer + i);
     std::cout<<"<<<<: "<<tem<<"\n...  "<<i<<std::endl;
@@ -132,7 +134,7 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     return buffer + i;
 }
 
-void    Request::postRequestHandl(const char *buffer, int r)
+void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
@@ -147,6 +149,8 @@ void    Request::postRequestHandl(const char *buffer, int r)
             {
                 r = tem.length();
                 buffer = removeContentLinght(const_cast<char *>(tem.c_str()), &r);
+                if (!buffer)
+                    return ;
             }
             if (chunkedSize < r && chunkedSize > 0)
             {
@@ -161,23 +165,25 @@ void    Request::postRequestHandl(const char *buffer, int r)
             {
                 if (chunkedSize <= 0)
                     std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r);
+                if (!buffer)
+                    return ;
                 MyFile.write(buffer, r);
                 chunkedSize -= r;
+                std::cout<<"..   >"<<chunkedSize<<std::endl;
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
         }
-        catch(const std::string& e)
+        catch (const int d)
         {
-            // if (types_rev[HeaderInfos["Content-Type"]] == "perl"  || types_rev[HeaderInfos["Content-Type"]] == "php")
-            //!     CGIII A MAMILLA
-            // else
-            // {
-            //!     dyali
-            // }
+                MyFile.close();
+                sendResponse(200, *i);
+                close(i->getSocket());
+                clientList.erase(i);
             //     ! send response drop clinet when uplowd is finished 
         }
-        catch(const int& i) {}
+        
+        //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
 }
 
