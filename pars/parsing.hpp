@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
+#include <sstream>
 
 #define ELEM 21
 
@@ -41,10 +42,10 @@ typedef struct s_server
 	std::map<std::string, std::list<std::string> > server_map;
 	std::map<int, std::string>  error_page;
 	std::vector <t_location> locations;
-	std::list<std::string>& getFromServerMap(std::string element)
-	{
+	std::list<std::string>& getFromServerMap(std::string element){
 		return server_map[element];
 	}
+	std::string getErrorPage(int StatusCode);
 
 } t_server;
 
@@ -71,7 +72,6 @@ class ParsConf
 	std::list <std::string> split_string(std::string str);
 	void brackets_errors();
 	std::vector<t_server>& getServer();
-	// std::map<std::string, std::list<std::string> >& GetLocationmap(std::map<std::string, std::list<std::string> >::iterator& it);
 	std::vector<t_location>::iterator getAll_locations(std::vector <t_server>::iterator it);
 	void exec_cgi();
 };

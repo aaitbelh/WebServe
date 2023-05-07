@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/05 14:08:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/07 18:05:52 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,10 @@ void 			handlDeleteRequest(Client& client)
 {
     std::ifstream file;
     std::string filename = find_filename(client);
+    int Rvalue = 0;
     file.open(filename);
     struct stat buffer;
+    stat(filename.c_str(), &buffer);
     if((file.is_open() && file.good()) && !access(filename.c_str(), W_OK))
     {
         if(S_ISDIR(buffer.st_mode))
@@ -26,7 +28,15 @@ void 			handlDeleteRequest(Client& client)
             DIR *dir = NULL;
             dir = opendir(filename.c_str());
             if(!dir)
-                sendResponse(404, client);
+            {
+                if(!client.server.error_page.count(404))
+                    sendResponse(404, client);
+                setInfos_header(client, client.server.error_page[404], &Rvalue);   
+                changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 404 Not Found");
+                if(Rvalue)
+                    sendResponse(404, client);
+                return ;
+            }
             struct dirent *ent = NULL;
             while((ent = readdir(dir)) != NULL)
             {
@@ -34,13 +44,27 @@ void 			handlDeleteRequest(Client& client)
                     len++;
             }
             if(len)
-                sendResponse(204, client);
+            {
+                if(!client.server.error_page.count(409))
+                    sendResponse(409, client);
+                client.getRes().getHeader() = setInfos_header(client, client.server.error_page[409], &Rvalue);
+                if(Rvalue)
+                    sendResponse(409, client);
+                changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 409 Conflict");
+                return ;
+            }
             rmdir(filename.c_str());
         }
         else
-            remove(filename.c_str());
+            remove(filename.c_str());    
         sendResponse(204, client);
     }
     else
-        sendResponse(404, client);
+    {
+        if(!client.server.error_page.count(404))
+            sendResponse(404, client);
+        setInfos_header(client, client.server.error_page[404], &Rvalue);
+        if(Rvalue)
+            sendResponse(404, client);
+    }
 }

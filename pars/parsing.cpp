@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/04/30 18:41:31 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/06 18:52:49 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,7 +281,13 @@ std::vector<t_location>::iterator ParsConf::getAll_locations(std::vector <t_serv
 {
 	return it->locations.begin();
 }
-
-// std::list<std::string>& ParsConf::getFromServerMap(std::string element)
+// std::string t_server::getErrorPage(int StatusCode)
 // {
+// 	std::stringstream str;
+// 	str << StatusCode;
+// 	if(this->server_map.count(str.str()))
+// 	{
+// 		return this->server_map[str.str()].;
+// 	}
+// 	return "";	
 // }

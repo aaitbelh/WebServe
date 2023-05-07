@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/05 14:29:22 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/07 18:02:38 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,11 @@ void Request::setToFile(const std::string&  str)
 
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
-
-    HeaderInfos["METHOD"] =  httpRequest.substr(0, httpRequest.find(" "));
-    HeaderInfos["URI"] = httpRequest.substr(httpRequest.find(" ") + 1, httpRequest.find("HTTP") - (httpRequest.find(" ") + 2));
-	HeaderInfos["VERSION"] = httpRequest.substr(httpRequest.find("HTTP"), httpRequest.find("\r\n") - httpRequest.find("HTTP"));
-    size_t pos = 0;
+    size_t pos = httpRequest.find(" ");
+    HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
+    HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
+    pos = httpRequest.find(" ", pos + 1);
+	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
     std::string httpRequestTmp = httpRequest.substr(pos);
     pos = 0;
@@ -71,6 +71,12 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
         httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
     }
+    //mamella need to manage the error pages to made it easer to me for get them from the config file
+    // if(1)
+    // {
+    //     std::string path = "public/404.html";
+    //     setInfos_header(*i, path);
+    // }
     if (HeaderInfos["METHOD"] == "POST")
     {
         if (HeaderInfos["Transfer-Encoding"] != "chunked")
@@ -179,7 +185,6 @@ void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::
     }
     catch (const int d)
     {
-            std::cout << "HOOLA " << std::endl;
             MyFile.close();
             sendResponse(200, *i);
             close(i->getSocket());
@@ -290,7 +295,9 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
 		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
+        {
 			servers.push_back(pars.servers[i]);
+        }
 	}
 	return servers;
 }
