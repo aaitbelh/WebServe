@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/07 18:02:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/08 14:23:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,34 @@ void Request::setToFile(const std::string&  str)
         fwrite(str.c_str(), sizeof(char), str.size(), tmp);
     }
 }
-
+int Request::checkRequest_validation(Client& client)
+{
+    int rvalue = 0;
+    std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
+    {
+        if(allowedchars.find(HeaderInfos["URI"][0]) == std::string::npos)
+            setInfos_header(client, client.server.error_page[400], &rvalue);
+    }
+    if(HeaderInfos["METHOD"] == "POST" && !rvalue)
+    {
+        if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding"))
+            setInfos_header(client, client.server.error_page[400], &rvalue);
+        else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked")
+            sendResponse(501, client);
+        else if(HeaderInfos["URI"].length() > 2048)
+            setInfos_header(client, client.server.error_page[414], &rvalue);
+        else
+            return 1;
+    }
+    if(rvalue)
+        sendResponse(rvalue, client);
+    return 0;
+}
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
+    std::cout << httpRequest << std::endl;
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
     pos = httpRequest.find(" ", pos + 1);
@@ -71,12 +95,8 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
         httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
     }
-    //mamella need to manage the error pages to made it easer to me for get them from the config file
-    // if(1)
-    // {
-    //     std::string path = "public/404.html";
-    //     setInfos_header(*i, path);
-    // }
+    if(!checkRequest_validation(*i))
+        return;
     if (HeaderInfos["METHOD"] == "POST")
     {
         if (HeaderInfos["Transfer-Encoding"] != "chunked")

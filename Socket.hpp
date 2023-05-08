@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:56 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/06 09:31:34 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/08 13:14:20 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 #define __NOTIMPLEMENTED   501
 #define __CONFLICT         409
 #define __NOCONTENT        204
-
+#define __REQUESTTOOLARGE  413
 class Socket
 {
 private:

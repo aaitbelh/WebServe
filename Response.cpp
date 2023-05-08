@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/07 15:51:15 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/08 12:52:46 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,7 @@ void Response::fillTheBody(Client &client)
     if(client.file.eof() && body.empty())
         throw std::exception(); 
 }
-std::string&    Response::getHeader()
-{
+std::string&    Response::getHeader(){
     return (header);
 }
 std::string&    Response::getBody()

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/04/30 11:04:55 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/08 14:18:47 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ public:
 	void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
     void    openFile(std::string& extention, bool append = false);
+    int checkRequest_validation(Client &client);
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -47,9 +48,4 @@ private:
     FILE             *tmp;
     std::ofstream MyFile;
 };
-
-
-
-
-
 #endif
