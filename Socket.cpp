@@ -148,7 +148,22 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             else
             {
                 if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
-                        request.postRequestHandl(buffer, r, i, clientList);
+                {
+                    try
+                    {
+                        request.postRequestHandl(buffer, r);
+                    }
+                    catch (...)
+                    {
+                        request.getMyfile().close();
+                        try {sendResponse(200, *i);}
+                        catch(...){}
+                        close(i->getSocket());
+                        clientList.erase(i);
+                        return (0);
+                        //     ! send response drop clinet when uplowd is finished 
+                    }
+                }    
                 else
                     request.addToReqyest(buffer, r);
             }

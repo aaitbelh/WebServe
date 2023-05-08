@@ -53,19 +53,19 @@ void Request::setToFile(const std::string&  str)
 
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
-
     HeaderInfos["METHOD"] =  httpRequest.substr(0, httpRequest.find(" "));
     HeaderInfos["URI"] = httpRequest.substr(httpRequest.find(" ") + 1, httpRequest.find("HTTP") - (httpRequest.find(" ") + 2));
 	HeaderInfos["VERSION"] = httpRequest.substr(httpRequest.find("HTTP"), httpRequest.find("\r\n") - httpRequest.find("HTTP"));
     size_t pos = 0;
     pos = httpRequest.find("\r\n") + 2;
     std::string httpRequestTmp = httpRequest.substr(pos);
+    // std::cout<<httpRequestTmp.length()<<std::endl;
     pos = 0;
     for(;httpRequestTmp.size();)
     {
         if(httpRequestTmp[0] == '\r' && httpRequestTmp[1] == '\n')
         {
-            httpRequestTmp = httpRequestTmp.substr(2);   
+            httpRequestTmp = httpRequestTmp.substr(2);
             break;
         }
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
@@ -73,15 +73,25 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     }
     if (HeaderInfos["METHOD"] == "POST")
     {
-        if (HeaderInfos["Transfer-Encoding"] != "chunked")
-            openFile(types_rev[HeaderInfos["Content-Type"]]);
-        else
-            openFile(types_rev[HeaderInfos["Content-Type"]], true);
-        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length(), i, clientList);
+        totalBytes = atol(HeaderInfos["Content-Length"].c_str());
+        openFile(types_rev[HeaderInfos["Content-Type"]]);
+        try
+        {
+            postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
+        }
+        catch (...)
+        {
+            MyFile.close();
+            try {sendResponse(200, *i);}
+            catch(...){}
+            close(i->getSocket());
+            clientList.erase(i);
+            //     ! send response drop clinet when uplowd is finished 
+        }
     }
         //setToFile(httpRequestTmp.substr(2));
 }
-void    Request::openFile(std::string& extention, bool append)
+void    Request::openFile(std::string& extention)
 {
     std::stringstream ss;
 
@@ -90,10 +100,7 @@ void    Request::openFile(std::string& extention, bool append)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
-    if (append)
-        MyFile.open(name, std::ios::app);
-    else
-        MyFile.open(name);
+    MyFile.open(name, std::ios::app);
 }
 
 int stringToHexx(std::string& hexString)
@@ -130,16 +137,20 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     return buffer + i;
 }
 
-void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::iterator& i, std::list<Client>& clientList)
+std::ofstream&    Request::getMyfile(){return (MyFile);}
+
+void    Request::postRequestHandl(const char *buffer, int r)
 {
+
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
+        resevedBytes += r;
+        if (resevedBytes >= totalBytes)
+            throw std::exception();
     }
     else
     {
-        try
-        {
             std::string tem(chunkOfChuk + std::string(buffer, r));
             if (chunkOfChuk.size())
             {
@@ -169,16 +180,6 @@ void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
-        }
-        catch (const int d)
-        {
-                MyFile.close();
-                sendResponse(200, *i);
-                close(i->getSocket());
-                clientList.erase(i);
-            //     ! send response drop clinet when uplowd is finished 
-        }
-        
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
 }
@@ -187,7 +188,6 @@ size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
     httpRequest.append(req, r);
-    resevedBytes += r;
 }
 
 void    Request::setType(REQUES_TYPE reqType) { type  = reqType;}
