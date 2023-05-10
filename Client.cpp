@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:01 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/29 12:38:24 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/06 10:49:53 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ std::string&    Client::getResponse() {return (response.getResponse());}
 struct all_infos& Client::GetClientinfos()
 { return this->allinfos; }
 
-bool Client::isitnew()
+bool& Client::isitnew()
 {
 	return this->is_new;
 }

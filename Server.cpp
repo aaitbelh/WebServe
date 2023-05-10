@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/29 12:39:13 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/07 11:00:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,7 @@ void Server::serverRun(t_server &server)
         if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
             throw std::exception();
         acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
-		if(clientList.begin()->isitnew())
-			clientList.begin()->parsingInfos = this->pars;
+        clientList.begin()->parsingInfos = this->pars;
         std::list<Client>::iterator i = clientList.begin(), j;
         i->server = server;
         j = i;
@@ -59,5 +58,5 @@ int main(int ac, char **av)
         s.serverRun(pars.servers[0]);
         return (0);
     }
-    std::cout << "ELEMENT NOT ENOUGH" << std::endl;
+    std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
 }

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/04 11:59:11 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/08 14:23:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,13 +50,37 @@ void Request::setToFile(const std::string&  str)
         fwrite(str.c_str(), sizeof(char), str.size(), tmp);
     }
 }
-
+int Request::checkRequest_validation(Client& client)
+{
+    int rvalue = 0;
+    std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
+    {
+        if(allowedchars.find(HeaderInfos["URI"][0]) == std::string::npos)
+            setInfos_header(client, client.server.error_page[400], &rvalue);
+    }
+    if(HeaderInfos["METHOD"] == "POST" && !rvalue)
+    {
+        if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding"))
+            setInfos_header(client, client.server.error_page[400], &rvalue);
+        else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked")
+            sendResponse(501, client);
+        else if(HeaderInfos["URI"].length() > 2048)
+            setInfos_header(client, client.server.error_page[414], &rvalue);
+        else
+            return 1;
+    }
+    if(rvalue)
+        sendResponse(rvalue, client);
+    return 0;
+}
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
-    HeaderInfos["METHOD"] =  httpRequest.substr(0, httpRequest.find(" "));
-    HeaderInfos["URI"] = httpRequest.substr(httpRequest.find(" ") + 1, httpRequest.find("HTTP") - (httpRequest.find(" ") + 2));
-	HeaderInfos["VERSION"] = httpRequest.substr(httpRequest.find("HTTP"), httpRequest.find("\r\n") - httpRequest.find("HTTP"));
-    size_t pos = 0;
+    size_t pos = httpRequest.find(" ");
+    HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
+    HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
+    pos = httpRequest.find(" ", pos + 1);
+	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
     std::string httpRequestTmp = httpRequest.substr(pos);
     // std::cout<<httpRequestTmp.length()<<std::endl;
@@ -71,6 +95,8 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
         httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
     }
+    if(!checkRequest_validation(*i))
+        return;
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
@@ -89,7 +115,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
             //     ! send response drop clinet when uplowd is finished 
         }
     }
-        //setToFile(httpRequestTmp.substr(2));
 }
 void    Request::openFile(std::string& extention)
 {
@@ -133,10 +158,13 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
+    {
+        std::cout << "GOT HREE" << std::endl;
         throw exception();
+
+    }
     return buffer + i;
 }
-
 std::ofstream&    Request::getMyfile(){return (MyFile);}
 
 void    Request::postRequestHandl(const char *buffer, int r)
@@ -171,7 +199,7 @@ void    Request::postRequestHandl(const char *buffer, int r)
             if (r > 0)
             {
                 if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r);
+                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -183,6 +211,7 @@ void    Request::postRequestHandl(const char *buffer, int r)
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
 }
+
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
@@ -285,7 +314,9 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
 		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
+        {
 			servers.push_back(pars.servers[i]);
+        }
 	}
 	return servers;
 }
