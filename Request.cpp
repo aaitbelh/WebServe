@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 10:56:07 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/10 11:05:31 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,10 +107,14 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         }
         catch (...)
         {
-            ≈
+            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
+               exec_cgi();
+            else
+            {
+                try {sendResponse(200, *i);}
+                catch(...){}
+            }
             MyFile.close();
-            try {sendResponse(200, *i);}
-            catch(...){}
             close(i->getSocket());
             clientList.erase(i);
             //     ! send response drop clinet when uplowd is finished 
@@ -166,7 +170,7 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     }
     return buffer + i;
 }
-std::ofstream&    Request::getMyfile(){return (MyFile);}
+std::fstream&    Request::getMyfile(){return (MyFile);}
 
 void    Request::postRequestHandl(const char *buffer, int r)
 {

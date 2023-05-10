@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 10:56:36 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/10 11:08:28 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,11 +156,14 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     }
                     catch (...)
                     {
-                        if (exec_cgi() == 1)
-                            return (1);
+                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "PHP")
+                            request.exec_cgi();
+                        else
+                        {
+                            try {sendResponse(200, *i);}
+                            catch(...){}
+                        }
                         request.getMyfile().close();
-                        try {sendResponse(200, *i);}
-                        catch(...){}
                         close(i->getSocket());
                         clientList.erase(i);
                         return (0);
