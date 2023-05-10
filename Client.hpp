@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/06 10:49:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 13:23:36 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,9 @@ class Client
     std::string&    getResponse();
     Response&   getRes();
     std::map<std::string, std::string>& getHeaderInfos();
-    int    writable;
-    bool   is_dir;
+    int		writable;
+    bool	is_dir;
+	bool	requestvalid;
     std::ifstream file;
     t_server server;
 	bool& isitnew();

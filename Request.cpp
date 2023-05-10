@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 11:05:31 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/10 16:12:10 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,22 +56,36 @@ int Request::checkRequest_validation(Client& client)
     std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
     {
-        if(allowedchars.find(HeaderInfos["URI"][0]) == std::string::npos)
-            setInfos_header(client, client.server.error_page[400], &rvalue);
+        if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
+        {
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
+            if(rvalue)
+                sendResponse(400, client);
+            return 1;
+        }
     }
     if(HeaderInfos["METHOD"] == "POST" && !rvalue)
     {
-        if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding"))
+        if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
             setInfos_header(client, client.server.error_page[400], &rvalue);
-        else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked")
+            if(rvalue)
+                rvalue = 400;
+        }
+        else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
-        else if(HeaderInfos["URI"].length() > 2048)
+        }
+        else if(HeaderInfos["URI"].length() > 2048){
             setInfos_header(client, client.server.error_page[414], &rvalue);
+            if(rvalue)
+                rvalue = 414;
+        }
         else
             return 1;
     }
     if(rvalue)
+    {
         sendResponse(rvalue, client);
+    }
     return 0;
 }
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
@@ -83,45 +97,27 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
     std::string httpRequestTmp = httpRequest.substr(pos);
-    // std::cout<<httpRequestTmp.length()<<std::endl;
     pos = 0;
     for(;httpRequestTmp.size();)
     {
         if(httpRequestTmp[0] == '\r' && httpRequestTmp[1] == '\n')
         {
-            httpRequestTmp = httpRequestTmp.substr(2);
+            httpRequestTmp = httpRequestTmp.substr(2);   
             break;
         }
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
         httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
     }
-    if(!checkRequest_validation(*i))
-        return;
     if (HeaderInfos["METHOD"] == "POST")
     {
-        totalBytes = atol(HeaderInfos["Content-Length"].c_str());
-        openFile(types_rev[HeaderInfos["Content-Type"]]);
-        try
-        {
-            postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
-        }
-        catch (...)
-        {
-            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
-               exec_cgi();
-            else
-            {
-                try {sendResponse(200, *i);}
-                catch(...){}
-            }
-            MyFile.close();
-            close(i->getSocket());
-            clientList.erase(i);
-            //     ! send response drop clinet when uplowd is finished 
-        }
+        if (HeaderInfos["Transfer-Encoding"] != "chunked")
+            openFile(types_rev[HeaderInfos["Content-Type"]]);
+        else
+            openFile(types_rev[HeaderInfos["Content-Type"]], true);
+        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length(), i, clientList);
     }
 }
-void    Request::openFile(std::string& extention)
+void    Request::openFile(std::string& extention, bool append)
 {
     std::stringstream ss;
 
@@ -130,7 +126,10 @@ void    Request::openFile(std::string& extention)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
-    MyFile.open(name, std::ios::app);
+    if (append)
+        MyFile.open(name, std::ios::app);
+    else
+        MyFile.open(name);
 }
 
 int stringToHexx(std::string& hexString)
@@ -164,23 +163,19 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
-        std::cout << "GOT HREE" << std::endl;
         throw exception();
-
     }
     return buffer + i;
 }
-std::fstream&    Request::getMyfile(){return (MyFile);}
 
-void    Request::postRequestHandl(const char *buffer, int r)
+void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
-
+    try
+    {
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
-        resevedBytes += r;
-        if (resevedBytes >= totalBytes)
-            throw std::exception();
+        throw std::exception();
     }
     else
     {
@@ -204,7 +199,7 @@ void    Request::postRequestHandl(const char *buffer, int r)
             if (r > 0)
             {
                 if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
+                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r);
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -213,15 +208,25 @@ void    Request::postRequestHandl(const char *buffer, int r)
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
+        
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
+    }
+    catch (const int d)
+    {
+            MyFile.close();
+            sendResponse(200, *i);
+            close(i->getSocket());
+            clientList.erase(i);
+        //     ! send response drop clinet when uplowd is finished 
+    }
 }
-
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
     httpRequest.append(req, r);
+    resevedBytes += r;
 }
 
 void    Request::setType(REQUES_TYPE reqType) { type  = reqType;}
@@ -245,6 +250,25 @@ void setTherootLocation(Client &client, std::vector<t_server>& servers)
 	}
 }
 
+std::vector<t_location>::iterator getTheLocation(Client& client, t_server &server)
+{
+    std::string tmp = client.GetClientinfos().URI;
+    std::vector<t_location>::iterator tmp_it = server.locations.end();
+    while(!tmp.empty())
+    {
+        for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
+            if(it->location_path == tmp){
+                return it;
+            }
+            if(it->location_path == "/")
+                tmp_it = it;
+        }
+        tmp = tmp.erase(tmp.rfind("/"));
+    }
+    
+    return tmp_it;
+}
+
 void	matchTheLocation(Client& client, std::vector<t_server> servers)
 {
 	bool isfounded = 0;
@@ -252,63 +276,70 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	std::string path;
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
-		for(std::vector<t_location>::iterator it = servers[i].locations.begin();it != servers[i].locations.end(); ++it)
+        std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
+		if(it != servers[i].locations.end())
 		{
-			if(client.GetClientinfos().URI.substr(0, it->location_path.size()) == it->location_path && it->location_path.size() > path.size())
+			isfounded = 1;
+			struct all_infos &tmpstruct = client.GetClientinfos();
+			tmpstruct.server_name = servers[i].server_map["server_name"].front();
+			if(it->isExist("allow_methods"))
 			{
-				isfounded = 1;
-				struct all_infos &tmpstruct = client.GetClientinfos();
-				tmpstruct.server_name = servers[i].server_map["server_name"].front();
-				if(it->isExist("allow_methods"))
+				std::list<std::string> lst = it->getElemetnBylocation("allow_methods");
+				if(lst.size())
 				{
-					std::list<std::string> lst = it->getElemetnBylocation("allow_methods");
-					if(lst.size())
+					for(std::list<std::string>::iterator lst_it = lst.begin(); lst_it != lst.end(); ++lst_it)
 					{
-						for(std::list<std::string>::iterator lst_it = lst.begin(); lst_it != lst.end(); ++lst_it)
-						{
-							if(*lst_it == "GET")
-								tmpstruct.allow_methods[0] = 1;
-							else if(*lst_it == "POST")
-								tmpstruct.allow_methods[1] = 1;
-							else if(*lst_it == "DELETE")
-								tmpstruct.allow_methods[2] = 1;				
-						}
+						if(*lst_it == "GET")
+							tmpstruct.allow_methods[0] = 1;
+						else if(*lst_it == "POST")
+							tmpstruct.allow_methods[1] = 1;
+						else if(*lst_it == "DELETE")
+							tmpstruct.allow_methods[2] = 1;
 					}
-					lst.clear();
 				}
-				else
-				{
-					for(size_t i = 0; i < 3; ++i)
-						tmpstruct.allow_methods[i] = 0;
-				}
-				if(it->isExist("autoindex"))
-					tmpstruct.autoindex = 1;	
-				else
-					tmpstruct.autoindex = 0;
-				if(it->isExist("return"))
-				{
-					tmpstruct.return_ = 1;
-					tmpstruct.return__ = it->getElemetnBylocation("return").front();
-				}
-				else
-					tmpstruct.return_ = 0;
-				if(it->isExist("cgi_pass"))
-				{
-					tmpstruct.cgi_pass_ = 1;
-					tmpstruct.cgi_pass = it->getElemetnBylocation("cgi_pass");
-				}
-				else
-					tmpstruct.cgi_pass_ = 0;
-				tmpstruct.index_files = it->getElemetnBylocation("index");
-				if(it->isExist("root"))
-					tmpstruct.root = it->getElemetnBylocation("root").front();
-				tmpstruct.location_div = *it;
-				return ;
+				lst.clear();
 			}
+			else
+			{
+				for(size_t i = 0; i < 3; ++i)
+					tmpstruct.allow_methods[i] = 0;
+			}
+			if(it->isExist("autoindex") && it->getElemetnBylocation("autoindex").front() == "1")
+            {
+				tmpstruct.autoindex = 1;
+            }
+			else
+            {
+				tmpstruct.autoindex = 0;
+            }
+			if(it->isExist("return"))
+			{
+				tmpstruct.return_ = 1;
+				tmpstruct.return__ = it->getElemetnBylocation("return").front();
+			}
+			else
+				tmpstruct.return_ = 0;
+			if(it->isExist("cgi_pass"))
+			{
+				tmpstruct.cgi_pass_ = 1;
+				tmpstruct.cgi_pass = it->getElemetnBylocation("cgi_pass");
+			}
+			else
+				tmpstruct.cgi_pass_ = 0;
+			tmpstruct.index_files = it->getElemetnBylocation("index");
+			if(it->isExist("root"))
+				tmpstruct.root = it->getElemetnBylocation("root").front();
+			tmpstruct.location_div = *it;
+			return ;
 		}	
 	}
 	if(!isfounded)
-		client.GetClientinfos() = rootLocation;
+    {
+        int rvalue = 0;
+        setInfos_header(client, client.server.error_page[404], &rvalue);
+        if(rvalue)
+            sendResponse(404, client);
+    }
 }
 
 std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
@@ -333,49 +364,4 @@ void        Request::setAllinfos(Client &client)
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
 	matchTheLocation(client, servers);
-}
-
-void Request::exec_cgi()
-{
-	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_CREAT | O_RDWR | O_TRUNC, 0777);
-	char *arg[3];
-    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
-    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-    env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webs/s.php");
-	env[6] = NULL;
-
-	arg[0] = strdup("/Users/mamellal/Desktop/webs/php-cgi");
-	arg[2] = NULL;
-
-	pid_t f = fork();
-    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
-
-
-    char buffer[1024];
-    while (!MyFile.eof()) {
-        MyFile.read(buffer, sizeof(buffer));
-        ssize_t bytesRead = MyFile.gcount();
-        write(file, buffer, bytesRead);
-    }
-	if(f == 0)
-	{
-		dup2(fd, 1);
-		close(fd);
-        if(HeaderInfos["Content-Type"] == "POST")
-        {
-            dup2(file, 0);
-            close(file);    
-        }
-		 execve(arg[0], arg, env);
-	}
-    int status = 0;
-	while(waitpid(-1, &status, WNOHANG))
-    {
-        if(WIFEXITED(status))
-            break;
-    }
 }

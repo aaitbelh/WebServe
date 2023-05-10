@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 11:08:28 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/10 16:10:28 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,74 +119,59 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 {
     try
     {
-    if (FD_ISSET(client.getSocket(), readSet))
-    {
-        char    buffer[BUFFER_SIZE + 1];
-        int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
-        if (r < -1)
+        if (FD_ISSET(client.getSocket(), readSet))
         {
-            std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
-            close(client.getSocket());
-            clientList.erase(i);
-            return (-1);
-        }
-        buffer[r] = '\0';
-        if(r <= 0)
-        {
-            close(client.getSocket());
-            clientList.erase(i);
-            return 1;
-        }
-        if (r > 0)
-        {
-            Request& request = client.getRequest();
-            if (!request.getLnght())
+            char    buffer[BUFFER_SIZE + 1];
+            int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
+            if (r < -1)
             {
-                request.addToReqyest(buffer,r);
-                request.parseInfos(i, clientList); // if throwing exiption
-                request.setAllinfos(client);
+                std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
+                close(client.getSocket());
+                clientList.erase(i);
+                return (-1);
             }
-            else
+            buffer[r] = '\0';
+            if(r <= 0)
             {
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                close(client.getSocket());
+                clientList.erase(i);
+                return 1;
+            }
+            if (r > 0)
+            {
+                Request& request = client.getRequest();
+                if (client.getRes().getHeader().empty())
                 {
-                    try
-                    {
-                        request.postRequestHandl(buffer, r);
-                    }
-                    catch (...)
-                    {
-                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "PHP")
-                            request.exec_cgi();
-                        else
-                        {
-                            try {sendResponse(200, *i);}
-                            catch(...){}
-                        }
-                        request.getMyfile().close();
-                        close(i->getSocket());
-                        clientList.erase(i);
-                        return (0);
-                        //     ! send response drop clinet when uplowd is finished 
-                    }
-                }    
+                    request.addToReqyest(buffer,r);
+                    request.parseInfos(i, clientList);
+                    request.setAllinfos(client);
+                    client.requestvalid = client.getRequest().checkRequest_validation(client);
+                }
                 else
-                    request.addToReqyest(buffer, r);
+                {
+                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                    {
+                        request.postRequestHandl(buffer, r, i, clientList);   
+                    }
+                    else
+                        request.addToReqyest(buffer, r);
+                }
             }
+            client.writable = 1;
         }
-        client.writable = 1;
+        if (FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        {
+            if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
+            {
+                handlGetRequest(client, client.file);
+            }
+            else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
+                handlDeleteRequest(client);
+	        sendHeader(client, client.file);
+	    	sendBody(client, client.file);
+        }
     }
-    if (client.getHeaderInfos()["METHOD"] != "POST" && FD_ISSET(client.getSocket(), writeSet) && client.writable)
-    {
-        if(client.getHeaderInfos()["METHOD"] == "GET")
-            handlGetRequest(client, client.file);
-        else if(client.getHeaderInfos()["METHOD"] == "DELETE")
-            handlDeleteRequest(client);
-	    sendHeader(client, client.file);
-		sendBody(client, client.file);
-    }
-    }
-    catch (std::exception)
+    catch(std::exception)
     {
         close(client.getSocket());
         clientList.erase(i);

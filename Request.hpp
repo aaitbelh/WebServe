@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/10 11:07:58 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/08 14:18:47 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,17 +31,14 @@ public:
     std::map<std::string, std::string>& getHeaderInfos();
     void setToFile(const std::string& str);
     size_t  getResevedByts();
-    void    postRequestHandl(const char *bufefr, int r);
-	std::fstream&    getMyfile();
-    void    setAllinfos(Client &client);
+    void    postRequestHandl(const char *bufefr, int r, std::list<Client>::iterator& i, std::list<Client>& clientList);
+	void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
-    void    openFile(std::string& extention);
-    int     checkRequest_validation(Client& client);
-    void exec_cgi();
+    void    openFile(std::string& extention, bool append = false);
+    int checkRequest_validation(Client &client);
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
-    size_t      totalBytes;
     int         fd;
     std::string httpRequest;
     std::map<std::string, std::string> HeaderInfos;
@@ -49,6 +46,6 @@ private:
     std::string         chunkOfChuk;
     int              chunkedSize;
     FILE             *tmp;
-    std::fstream MyFile;
+    std::ofstream MyFile;
 };
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 10:54:36 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/10 16:13:07 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,21 +115,34 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     header = request["VERSION"];
     if(client.file.good() && S_ISDIR(buffer.st_mode))
     {
-        header += " 200 OK\r\n";   
-		client.dirname = filename;
-        filename = "listing-dir.html";
-        client.is_dir = 1;
-        client.file.close();
-        client.file.clear();
-        client.file.open("listing-dir.html");
+        if(!client.GetClientinfos().autoindex){
+            header += " 403 Forbiden\r\n";
+            filename = client.server.error_page[403];
+            client.file.close();
+            client.file.clear();
+            client.file.open(filename);
+			if(!client.server.error_page.count(403) || (!client.file.is_open() || !client.file.good())){
+                *Rvalue = 403;
+                return "";
+            }
+		}
+        else{
+            header += " 200 OK\r\n";   
+		    client.dirname = filename;
+            filename = "listing-dir.html";
+            client.is_dir = 1;
+            client.file.close();
+            client.file.clear();
+            client.file.open("listing-dir.html");
+        }
     }
     else
     {
         if(client.file.is_open() && !access(filename.c_str(), R_OK))
             header += " 200 OK\r\n";
-		else if(client.file.is_open() && client.GetClientinfos().autoindex)
+		else if(!client.file.is_open())
 		{
-            header += " 404 KO\r\n";
+            header += " 404 Not Found\r\n";
             filename = client.server.error_page[404];
             client.file.close();
             client.file.clear();
@@ -141,8 +154,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
         }
 		else
 		{
-			sendResponse(403, client);
-            header += " 403 KO\r\n";
+            header += " 403 Forbiden\r\n";
             filename = client.server.error_page[403];
             client.file.close();
             client.file.clear();
@@ -157,13 +169,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     header.append("Connection: close\r\n");
     header.append("Server: ");
 	header.append(client.GetClientinfos().server_name);
-    std::string date;
-    time_t  now = time(0);
-    struct tm *t = localtime(&now);
-    char buf[80];
-    strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", t);
-    date = buf;
-    header.append("Date: " + date + "\r\n");
+    header.append("\r\n");
     if(client.is_dir)
         s <<  buffer.st_size + calcluateLen(client);    
     else
@@ -188,7 +194,6 @@ void    changeTheHeaderby(Client &client, const std::string &element)
     std::string &header = client.getRes().getHeader();
     header.erase(0, header.find("\r\n"));
     header.insert(0,element);
-    
 }
 Response::Response()
 {
@@ -219,3 +224,4 @@ Response::~Response()
 }
 
 std::string&    Response::getResponse() {return (httpResponse);}
+

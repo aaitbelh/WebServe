@@ -6,12 +6,11 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/06 18:52:49 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/09 13:16:11 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parsing.hpp"
-
 void ParsConf::countserver(char *av)
 {
 	fstream file;

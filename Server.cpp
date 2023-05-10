@@ -58,5 +58,4 @@ int main(int ac, char **av)
         s.serverRun(pars.servers[0]);
         return (0);
     }
-    std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
 }
