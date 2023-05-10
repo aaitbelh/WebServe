@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/08 14:18:47 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 10:54:20 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ public:
     char    *removeContentLinght(char *buffer, int *r);
     void    openFile(std::string& extention);
     int     checkRequest_validation(Client& client);
+    void exec_cgi()
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -48,6 +49,6 @@ private:
     std::string         chunkOfChuk;
     int              chunkedSize;
     FILE             *tmp;
-    std::ofstream MyFile;
+    std::fstream MyFile;
 };
 #endif

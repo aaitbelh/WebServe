@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/08 14:23:02 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 10:56:07 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         }
         catch (...)
         {
+            ≈
             MyFile.close();
             try {sendResponse(200, *i);}
             catch(...){}
@@ -328,4 +329,49 @@ void        Request::setAllinfos(Client &client)
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
 	matchTheLocation(client, servers);
+}
+
+void Request::exec_cgi()
+{
+	char **env = (char **)malloc(sizeof(char **) * 5);
+	int fd = open("resp", O_CREAT | O_RDWR | O_TRUNC, 0777);
+	char *arg[3];
+    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
+    env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
+    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webs/s.php");
+	env[6] = NULL;
+
+	arg[0] = strdup("/Users/mamellal/Desktop/webs/php-cgi");
+	arg[2] = NULL;
+
+	pid_t f = fork();
+    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
+
+
+    char buffer[1024];
+    while (!MyFile.eof()) {
+        MyFile.read(buffer, sizeof(buffer));
+        ssize_t bytesRead = MyFile.gcount();
+        write(file, buffer, bytesRead);
+    }
+	if(f == 0)
+	{
+		dup2(fd, 1);
+		close(fd);
+        if(HeaderInfos["Content-Type"] == "POST")
+        {
+            dup2(file, 0);
+            close(file);    
+        }
+		 execve(arg[0], arg, env);
+	}
+    int status = 0;
+	while(waitpid(-1, &status, WNOHANG))
+    {
+        if(WIFEXITED(status))
+            break;
+    }
 }
