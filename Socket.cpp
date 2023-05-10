@@ -156,9 +156,14 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     }
                     catch (...)
                     {
+                        if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
+                            //mamilla
+                        else
+                        {
+                            try {sendResponse(200, *i);}
+                            catch(...){}
+                        }
                         request.getMyfile().close();
-                        try {sendResponse(200, *i);}
-                        catch(...){}
                         close(i->getSocket());
                         clientList.erase(i);
                         return (0);

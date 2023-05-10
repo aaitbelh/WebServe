@@ -107,9 +107,14 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         }
         catch (...)
         {
+            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
+                //mamilla
+            else
+            {
+                try {sendResponse(200, *i);}
+                catch(...){}
+            }
             MyFile.close();
-            try {sendResponse(200, *i);}
-            catch(...){}
             close(i->getSocket());
             clientList.erase(i);
             //     ! send response drop clinet when uplowd is finished 
