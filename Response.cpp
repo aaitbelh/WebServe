@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 16:13:07 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 20:05:30 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,10 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     else
     {
         if(client.file.is_open() && !access(filename.c_str(), R_OK))
+        {
+            std::cout << "GOT HERE " << std::endl;
             header += " 200 OK\r\n";
+        }
 		else if(!client.file.is_open())
 		{
             header += " 404 Not Found\r\n";
@@ -194,6 +197,7 @@ void    changeTheHeaderby(Client &client, const std::string &element)
     std::string &header = client.getRes().getHeader();
     header.erase(0, header.find("\r\n"));
     header.insert(0,element);
+    
 }
 Response::Response()
 {
@@ -224,4 +228,3 @@ Response::~Response()
 }
 
 std::string&    Response::getResponse() {return (httpResponse);}
-

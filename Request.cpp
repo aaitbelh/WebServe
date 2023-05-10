@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 16:12:10 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 21:25:27 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ int Request::checkRequest_validation(Client& client)
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
         {
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 sendResponse(400, client);
             return 1;
@@ -68,6 +69,7 @@ int Request::checkRequest_validation(Client& client)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
             setInfos_header(client, client.server.error_page[400], &rvalue);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 rvalue = 400;
         }
@@ -83,16 +85,26 @@ int Request::checkRequest_validation(Client& client)
             return 1;
     }
     if(rvalue)
-    {
         sendResponse(rvalue, client);
-    }
     return 0;
+}
+std::string GetquerySting(std::string &URI)
+{
+    if(URI.find("?") != std::string::npos)
+    {
+        std::string str;
+        str = URI.substr(URI.find("?"));
+        URI = URI.substr(0, URI.find("?"));
+        return str;
+    }
+    return "";
 }
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
+    HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
@@ -102,7 +114,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     {
         if(httpRequestTmp[0] == '\r' && httpRequestTmp[1] == '\n')
         {
-            httpRequestTmp = httpRequestTmp.substr(2);   
+            httpRequestTmp = httpRequestTmp.substr(2);
             break;
         }
         HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
@@ -110,14 +122,29 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     }
     if (HeaderInfos["METHOD"] == "POST")
     {
-        if (HeaderInfos["Transfer-Encoding"] != "chunked")
-            openFile(types_rev[HeaderInfos["Content-Type"]]);
-        else
-            openFile(types_rev[HeaderInfos["Content-Type"]], true);
-        postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length(), i, clientList);
+        totalBytes = atol(HeaderInfos["Content-Length"].c_str());
+        openFile(types_rev[HeaderInfos["Content-Type"]]);
+        try
+        {
+            postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
+        }
+        catch (...)
+        {
+            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
+               exec_cgi();
+            else
+            {
+                try {sendResponse(200, *i);}
+                catch(...){}
+            }
+            MyFile.close();
+            close(i->getSocket());
+            clientList.erase(i);
+            //     ! send response drop clinet when uplowd is finished 
+        }
     }
 }
-void    Request::openFile(std::string& extention, bool append)
+void    Request::openFile(std::string& extention)
 {
     std::stringstream ss;
 
@@ -126,10 +153,7 @@ void    Request::openFile(std::string& extention, bool append)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
-    if (append)
-        MyFile.open(name, std::ios::app);
-    else
-        MyFile.open(name);
+    MyFile.open(name, std::ios::app);
 }
 
 int stringToHexx(std::string& hexString)
@@ -163,19 +187,23 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
+        std::cout << "GOT HREE" << std::endl;
         throw exception();
+
     }
     return buffer + i;
 }
+std::fstream&    Request::getMyfile(){return (MyFile);}
 
-void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::iterator& i, std::list<Client>& clientList)
+void    Request::postRequestHandl(const char *buffer, int r)
 {
-    try
-    {
+
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
-        throw std::exception();
+        resevedBytes += r;
+        if (resevedBytes >= totalBytes)
+            throw std::exception();
     }
     else
     {
@@ -199,7 +227,7 @@ void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::
             if (r > 0)
             {
                 if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r);
+                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -208,25 +236,15 @@ void    Request::postRequestHandl(const char *buffer, int r, std::list<Client>::
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
-        
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }   
-    }
-    catch (const int d)
-    {
-            MyFile.close();
-            sendResponse(200, *i);
-            close(i->getSocket());
-            clientList.erase(i);
-        //     ! send response drop clinet when uplowd is finished 
-    }
 }
+
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
     httpRequest.append(req, r);
-    resevedBytes += r;
 }
 
 void    Request::setType(REQUES_TYPE reqType) { type  = reqType;}
@@ -265,7 +283,6 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
         }
         tmp = tmp.erase(tmp.rfind("/"));
     }
-    
     return tmp_it;
 }
 
@@ -300,18 +317,12 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				lst.clear();
 			}
 			else
-			{
 				for(size_t i = 0; i < 3; ++i)
 					tmpstruct.allow_methods[i] = 0;
-			}
 			if(it->isExist("autoindex") && it->getElemetnBylocation("autoindex").front() == "1")
-            {
 				tmpstruct.autoindex = 1;
-            }
 			else
-            {
 				tmpstruct.autoindex = 0;
-            }
 			if(it->isExist("return"))
 			{
 				tmpstruct.return_ = 1;
@@ -364,4 +375,49 @@ void        Request::setAllinfos(Client &client)
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
 	matchTheLocation(client, servers);
+}
+
+void Request::exec_cgi()
+{
+	char **env = (char **)malloc(sizeof(char **) * 5);
+	int fd = open("resp", O_CREAT | O_RDWR | O_TRUNC, 0777);
+	char *arg[3];
+    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
+    env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
+    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webs/s.php");
+	env[6] = NULL;
+
+	arg[0] = strdup("/Users/mamellal/Desktop/webs/php-cgi");
+	arg[2] = NULL;
+
+	pid_t f = fork();
+    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
+
+
+    char buffer[1024];
+    while (!MyFile.eof()) {
+        MyFile.read(buffer, sizeof(buffer));
+        ssize_t bytesRead = MyFile.gcount();
+        write(file, buffer, bytesRead);
+    }
+	if(f == 0)
+	{
+		dup2(fd, 1);
+		close(fd);
+        if(HeaderInfos["Content-Type"] == "POST")
+        {
+            dup2(file, 0);
+            close(file);    
+        }
+		 execve(arg[0], arg, env);
+	}
+    int status = 0;
+	while(waitpid(-1, &status, WNOHANG))
+    {
+        if(WIFEXITED(status))
+            break;
+    }
 }

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 16:10:28 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/10 20:54:03 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,59 +119,75 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 {
     try
     {
-        if (FD_ISSET(client.getSocket(), readSet))
+    if (FD_ISSET(client.getSocket(), readSet))
+    {
+        char    buffer[BUFFER_SIZE + 1];
+        int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
+        if (r < -1)
         {
-            char    buffer[BUFFER_SIZE + 1];
-            int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
-            if (r < -1)
+            std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
+            close(client.getSocket());
+            clientList.erase(i);
+            return (-1);
+        }
+        buffer[r] = '\0';
+        if(r <= 0)
+        {
+            close(client.getSocket());
+            clientList.erase(i);
+            return 1;
+        }
+        if (r > 0)
+        {
+            Request& request = client.getRequest();
+            if (client.getRes().getHeader().empty())
             {
-                std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
-                close(client.getSocket());
-                clientList.erase(i);
-                return (-1);
+                request.addToReqyest(buffer,r);
+                request.parseInfos(i, clientList); // if throwing exiption
+                request.setAllinfos(client);
+                client.requestvalid = client.getRequest().checkRequest_validation(client);
             }
-            buffer[r] = '\0';
-            if(r <= 0)
+            else
             {
-                close(client.getSocket());
-                clientList.erase(i);
-                return 1;
-            }
-            if (r > 0)
-            {
-                Request& request = client.getRequest();
-                if (client.getRes().getHeader().empty())
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
                 {
-                    request.addToReqyest(buffer,r);
-                    request.parseInfos(i, clientList);
-                    request.setAllinfos(client);
-                    client.requestvalid = client.getRequest().checkRequest_validation(client);
-                }
-                else
-                {
-                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                    try
                     {
-                        request.postRequestHandl(buffer, r, i, clientList);   
+                        request.postRequestHandl(buffer, r);
                     }
-                    else
-                        request.addToReqyest(buffer, r);
-                }
+                    catch (...)
+                    {
+                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "PHP")
+                            request.exec_cgi();
+                        else
+                        {
+                            try {sendResponse(200, *i);}
+                            catch(...){}
+                        }
+                        request.getMyfile().close();
+                        close(i->getSocket());
+                        clientList.erase(i);
+                        return (0);
+                        //     ! send response drop clinet when uplowd is finished 
+                    }
+                }    
+                else
+                    request.addToReqyest(buffer, r);
             }
-            client.writable = 1;
         }
-        if (FD_ISSET(client.getSocket(), writeSet) && client.writable)
-        {
-            if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
-            {
-                handlGetRequest(client, client.file);
-            }
-            else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
-                handlDeleteRequest(client);
-	        sendHeader(client, client.file);
-	    	sendBody(client, client.file);
-        }
+        client.writable = 1;
     }
-    catch(std::exception)
+    if (client.getHeaderInfos()["METHOD"] != "POST" && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+    {
+        if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
+            handlGetRequest(client, client.file);
+        else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
+            handlDeleteRequest(client);
+	    sendHeader(client, client.file);
+		sendBody(client, client.file);
+    }
+    }
+    catch (std::exception)
     {
         close(client.getSocket());
         clientList.erase(i);
