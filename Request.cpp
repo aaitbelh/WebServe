@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 18:11:07 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/11 20:50:54 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
-    HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
+    // HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
@@ -379,34 +379,30 @@ void        Request::setAllinfos(Client &client)
 void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_RDWR | O_CREAT | O_TRUNC, 0666);
+	int fd = open("resp", O_RDWR | O_CREAT, 0666);
 	char *arg[3];
-    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
-    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
+    env[0] = strdup("METHOD=GET"); 
+    env[1] = strdup("Content-Length=12"); 
+    env[2] = strdup("Content-Type=text/php"); 
+    env[3] = strdup("QUERY_STRING=lol"); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webbbb/f.php");
+    env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    // env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+    // env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+    // env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+    // env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
+    // env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
+    // env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
 	env[6] = NULL;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
     arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/mamellal/Desktop/webbbb/f.php");
-    std::cout << "FILE IS " << arg[1] << std::endl;
+	arg[1] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
 	arg[2] = NULL;
 
     int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
-
-
     char buffer[1024];
-    if(client.getHeaderInfos()["METHOD"] == "GET"){
-        while (!client.file.eof()) {
-            client.file.read(buffer, sizeof(buffer));
-            ssize_t bytesRead = client.file.gcount();
-            write(file, buffer, bytesRead);
-        }
-    }
-    else{
+    if(client.getHeaderInfos()["METHOD"] == "POST"){
         while (!MyFile.eof()) {
             MyFile.read(buffer, sizeof(buffer));
             ssize_t bytesRead = MyFile.gcount();
@@ -418,32 +414,34 @@ void Request::exec_cgi(Client &client)
 	{
 		dup2(fd, 1);
 		close(fd);
-        if(HeaderInfos["Content-Type"] == "POST")
+        if(HeaderInfos["METHOD"] == "POST")
         {
             fd = open(MyFilename.c_str(), O_RDWR | O_CREAT | O_TRUNC);
-            dup2(fd, 1);
+            dup2(fd, 0);
             close(fd);    
         }
-		if (execve(arg[0], arg, env) == -1)
-        {
-            std::cout << "execve failure" <<std::endl;
-            exit(1);
-        }
+		execve(arg[0], arg, env);
+        std::cout << "execve failure" <<std::endl;
         exit(1);
 	}
     int status = 0;
-	while(waitpid(-1, &status, WNOHANG))
+	while(waitpid(f, &status, WNOHANG))
     {
         if(WIFEXITED(status))
         {
             break;
         }
     }
-    std::ifstream file2;
-	file2.open("resp");
-	char buf[1024];
-	file2.read(buf, 1024);
-	std::cout << file2.gcount() << std::endl;
-	std::cout <<buf << std::endl;
+    close(fd);
+    // std::fstream file2;
+	// file2.open("resp");
+	// char buf[1024];
+	// file2.read(buf, 1024);
+	// std::cout << file2.gcount() << std::endl;
+	// std::cout <<buf << std::endl;
+    client.file.clear();
+    client.file.close();
+    client.file.open("resp");
+    
     // throw std::exception();
 }

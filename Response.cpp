@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 18:08:38 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/11 20:51:12 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ void Response::fillTheBody(Client &client)
     std::string body;
     char buf[1024];
     client.file.read(buf, 1024);
-    std::cout << buf << std::endl;
     body.append(buf, client.file.gcount());
     this->body = body;
     if(client.is_dir && client.file.eof())
@@ -28,11 +27,7 @@ void Response::fillTheBody(Client &client)
 		client.is_dir = 0;
     }
     if(client.file.eof() && body.empty())
-    {
-        client.file.clear();
-        client.file.close();
         throw std::exception(); 
-    }
 }
 std::string&    Response::getHeader(){
     return (header);
@@ -180,12 +175,16 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     else
         s << buffer.st_size;
     header.append("Content-Length: " + s.str() + "\r\n");
-    // header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
-    header.append("Content-Type: text/html\r\n");
-    header.append("\r\n");
-    if(tmp.getFileType(filename) == "php" || tmp.getFileType(filename) == "perl")
-    {    
+    if(tmp.getFileType(filename) == "text/php" || tmp.getFileType(filename) == "text/perl")
+    {
         client.getRequest().exec_cgi(client);
+
+    }
+    else
+    {
+
+        std::cout << "RONALDO " << std::endl; 
+        header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
     }
     return header;
 }
@@ -223,8 +222,8 @@ Response::Response()
     types["mp4"] = "video/mp4";
     types["ico"] = "image/x-icon";
     types["svg"] = "image/svg+xml";
-    types["php"] = "php";
-    types["perl"] = "perl";
+    types["php"] = "text/php";
+    types["perl"] = "text/perl";
     types["default"] = "application/octet-stream";
 
 }
