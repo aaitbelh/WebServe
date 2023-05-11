@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 18:51:00 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 13:24:10 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ class Client
     int    writable;
     bool   is_dir;
 	bool	requestvalid;
-    std::ifstream file;
+    std::fstream file;
     t_server server;
 	bool& isitnew();
 	ParsConf	parsingInfos;

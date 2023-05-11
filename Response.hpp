@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:54 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/06 14:02:30 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 13:27:54 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class Response
 };
 std::string		find_filename(Client &client);
 std::string setInfos_header(Client &client, std::string filename, int *Rvalue);
-void			sendBody(Client& client, std::ifstream &file);
-void			sendHeader(Client& client, std::ifstream &file);
+void			sendBody(Client& client);
+void			sendHeader(Client& client);
 void            changeTheHeaderby(Client &client, const std::string &element);
 #endif

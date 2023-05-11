@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 20:05:30 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 13:43:14 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,10 +139,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     else
     {
         if(client.file.is_open() && !access(filename.c_str(), R_OK))
-        {
-            std::cout << "GOT HERE " << std::endl;
             header += " 200 OK\r\n";
-        }
 		else if(!client.file.is_open())
 		{
             header += " 404 Not Found\r\n";
@@ -180,6 +177,8 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     header.append("Content-Length: " + s.str() + "\r\n");
     header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
     header.append("\r\n");
+    if(tmp.getFileType(filename) == "php" || tmp.getFileType(filename) == "perl")
+        client.getRequest().exec_cgi(client);
     return header;
 }
 void Response::fillTheHeader(Client &client)
@@ -216,6 +215,8 @@ Response::Response()
     types["mp4"] = "video/mp4";
     types["ico"] = "image/x-icon";
     types["svg"] = "image/svg+xml";
+    types["php"] = "php";
+    types["perl"] = "perl";
     types["default"] = "application/octet-stream";
 
 }

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 21:25:27 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 13:41:19 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         catch (...)
         {
             if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
-               exec_cgi();
+               exec_cgi(*i);
             else
             {
                 try {sendResponse(200, *i);}
@@ -377,7 +377,7 @@ void        Request::setAllinfos(Client &client)
 	matchTheLocation(client, servers);
 }
 
-void Request::exec_cgi()
+void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
 	int fd = open("resp", O_CREAT | O_RDWR | O_TRUNC, 0777);
@@ -389,8 +389,9 @@ void Request::exec_cgi()
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
     env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webs/s.php");
 	env[6] = NULL;
-
-	arg[0] = strdup("/Users/mamellal/Desktop/webs/php-cgi");
+    std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
+    ++it;
+	arg[0] = strdup(it->c_str());
 	arg[2] = NULL;
 
 	pid_t f = fork();
@@ -398,10 +399,19 @@ void Request::exec_cgi()
 
 
     char buffer[1024];
-    while (!MyFile.eof()) {
-        MyFile.read(buffer, sizeof(buffer));
-        ssize_t bytesRead = MyFile.gcount();
-        write(file, buffer, bytesRead);
+    if(client.getHeaderInfos()["METHOD"] == "GET"){
+        while (!client.file.eof()) {
+            client.file.read(buffer, sizeof(buffer));
+            ssize_t bytesRead = client.file.gcount();
+            write(file, buffer, bytesRead);
+        }
+    }
+    else{
+        while (!MyFile.eof()) {
+            MyFile.read(buffer, sizeof(buffer));
+            ssize_t bytesRead = MyFile.gcount();
+            write(file, buffer, bytesRead);
+        }
     }
 	if(f == 0)
 	{
@@ -420,4 +430,7 @@ void Request::exec_cgi()
         if(WIFEXITED(status))
             break;
     }
+    client.file.clear();
+    client.file.close();
+    client.file.open("resp");
 }

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/10 20:54:03 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 13:28:08 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     catch (...)
                     {
                         if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "PHP")
-                            request.exec_cgi();
+                            request.exec_cgi(client);
                         else
                         {
                             try {sendResponse(200, *i);}
@@ -180,11 +180,11 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     if (client.getHeaderInfos()["METHOD"] != "POST" && FD_ISSET(client.getSocket(), writeSet) && client.writable)
     {
         if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
-            handlGetRequest(client, client.file);
+            handlGetRequest(client);
         else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
             handlDeleteRequest(client);
-	    sendHeader(client, client.file);
-		sendBody(client, client.file);
+	    sendHeader(client);
+		sendBody(client);
     }
     }
     catch (std::exception)
