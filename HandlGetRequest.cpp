@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HandlGetRequest.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/02 18:02:37 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/11 13:30:05 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 17:40:02 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ void			sendBody(Client& client)
 {
 	client.getRes().fillTheBody(client);
 	std::string req =  client.getRes().getBody();
+	std::cout << "BODY---> " << req << std::endl;
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	if(!r)
 		throw std::exception();

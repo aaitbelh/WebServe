@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 13:41:19 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/11 18:11:07 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,7 @@ void    Request::openFile(std::string& extention)
     ss << ".";
     ss << extention;
     std::string name(ss.str());
+    MyFilename = name;
     MyFile.open(name, std::ios::app);
 }
 
@@ -187,7 +188,6 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
-        std::cout << "GOT HREE" << std::endl;
         throw exception();
 
     }
@@ -275,9 +275,8 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
     while(!tmp.empty())
     {
         for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
-            if(it->location_path == tmp){
-                return it;
-            }
+            if(it->location_path == tmp)
+                return it; 
             if(it->location_path == "/")
                 tmp_it = it;
         }
@@ -380,21 +379,22 @@ void        Request::setAllinfos(Client &client)
 void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_CREAT | O_RDWR | O_TRUNC, 0777);
+	int fd = open("resp", O_RDWR | O_CREAT | O_TRUNC, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
     env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webs/s.php");
+    env[5] = strdup("PATH_INFO=/Users/mamellal/Desktop/webbbb/f.php");
 	env[6] = NULL;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
-	arg[0] = strdup(it->c_str());
+    arg[0] = strdup("php-cgi");
+	arg[1] = strdup("/Users/mamellal/Desktop/webbbb/f.php");
+    std::cout << "FILE IS " << arg[1] << std::endl;
 	arg[2] = NULL;
 
-	pid_t f = fork();
     int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
 
 
@@ -413,24 +413,37 @@ void Request::exec_cgi(Client &client)
             write(file, buffer, bytesRead);
         }
     }
+	pid_t f = fork();
 	if(f == 0)
 	{
 		dup2(fd, 1);
 		close(fd);
         if(HeaderInfos["Content-Type"] == "POST")
         {
-            dup2(file, 0);
-            close(file);    
+            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            dup2(fd, 1);
+            close(fd);    
         }
-		 execve(arg[0], arg, env);
+		if (execve(arg[0], arg, env) == -1)
+        {
+            std::cout << "execve failure" <<std::endl;
+            exit(1);
+        }
+        exit(1);
 	}
     int status = 0;
 	while(waitpid(-1, &status, WNOHANG))
     {
         if(WIFEXITED(status))
+        {
             break;
+        }
     }
-    client.file.clear();
-    client.file.close();
-    client.file.open("resp");
+    std::ifstream file2;
+	file2.open("resp");
+	char buf[1024];
+	file2.read(buf, 1024);
+	std::cout << file2.gcount() << std::endl;
+	std::cout <<buf << std::endl;
+    // throw std::exception();
 }
