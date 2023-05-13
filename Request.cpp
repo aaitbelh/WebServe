@@ -59,9 +59,9 @@ int Request::checkRequest_validation(Client& client)
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
         {
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 sendResponse(400, client);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             return 1;
         }
     }
@@ -69,9 +69,9 @@ int Request::checkRequest_validation(Client& client)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
             setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 rvalue = 400;
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
         }
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
@@ -81,11 +81,12 @@ int Request::checkRequest_validation(Client& client)
             if(rvalue)
                 rvalue = 414;
         }
-        else
-            return 1;
     }
     if(rvalue)
+    {   
         sendResponse(rvalue, client);
+    }
+        
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -127,6 +128,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
+        std::cout << "C ------>" << HeaderInfos["Content-Length"] << std::endl;
         openFile(types_rev[HeaderInfos["Content-Type"]]);
     }
 }
@@ -183,19 +185,24 @@ char    *Request::removeContentLinght(char *buffer, int *r)
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
 
-void    Request::postRequestHandl(const char *buffer, int r)
+void    Request::postRequestHandl()
 {
-
+    char    *buffer = const_cast<char *>(httpRequest.c_str());
+    int r = httpRequest.length();
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
         resevedBytes += r;
-        std::cout << "---------> byf" << buffer  << std::endl;
+        std::cout << resevedBytes << " && " << totalBytes << std::endl;
         if (resevedBytes >= totalBytes)
+        {
+            std::cout << "GOOOT HERE  " << std::endl;
             throw std::exception();
+        }
     }
     else
     {
+            std::cout << "resevedBytes <<  << totalBytes" << std::endl;
             std::string tem(chunkOfChuk + std::string(buffer, r));
             if (chunkOfChuk.size())
             {
@@ -226,13 +233,15 @@ void    Request::postRequestHandl(const char *buffer, int r)
 				resevedBytes += r;
             }
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
-    }   
+    }
+    std::cout << resevedBytes << " && " << totalBytes << std::endl;
 }
 
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
+    httpRequest.clear();
     httpRequest.append(req, r);
 }
 
@@ -265,9 +274,17 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
     {
         for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
             if(it->location_path == tmp)
+            {
+                std::cout<<"3sy1      \n";
+
                 return it; 
+            }
             if(it->location_path == "/")
+            {
+                std::cout<<"3sdddy1      \n";
                 tmp_it = it;
+
+            }
         }
         tmp = tmp.erase(tmp.rfind("/"));
     }
@@ -281,7 +298,10 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	std::string path;
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
+    std::cout<<"351      \n";
         std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
+    std::cout<<"351      \n";
+
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
@@ -334,6 +354,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	}
 	if(!isfounded)
     {
+        std::cout<<"hnaaaaa 342\n";
         int rvalue = 0;
         setInfos_header(client, client.server.error_page[404], &rvalue);
         if(rvalue)
@@ -361,7 +382,7 @@ void        Request::setAllinfos(Client &client)
 	struct ParsConf &tmp_parsstruct = client.parsingInfos;
 	tmpstruct.host = this->getHeaderInfos()["Host"];
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
-	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
+	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
 

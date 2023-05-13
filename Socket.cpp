@@ -119,76 +119,80 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 {
     try
     {
-    if (FD_ISSET(client.getSocket(), readSet))
-    {
-        char    buffer[BUFFER_SIZE + 1];
-        int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
-        if (r < -1)
+        if (FD_ISSET(client.getSocket(), readSet))
         {
-            std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
-            close(client.getSocket());
-            clientList.erase(i);
-            return (-1);
-        }
-        buffer[r] = '\0';
-        if(r <= 0)
-        {
-            close(client.getSocket());
-            clientList.erase(i);
-            return 1;
-        }
-        if (r > 0)
-        {
-            Request& request = client.getRequest();
-            if (client.getRes().getHeader().empty())
+            std::cout<<"not here\n";
+            char    buffer[BUFFER_SIZE + 1];
+            int r = recv(client.getSocket(), buffer, BUFFER_SIZE, 0);
+            if (r == -1)
             {
-                request.addToReqyest(buffer,r);
-                request.parseInfos(i, clientList);
-                request.setAllinfos(client);
-                client.requestvalid = client.getRequest().checkRequest_validation(client);
+                std::cerr<<"error in resv(): "<<strerror(errno)<<std::endl;
+                close(client.getSocket());
+                clientList.erase(i);
+                return (-1);
             }
-            if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
+            // buffer[r] = '\0';÷
+            if(r <= 0)
             {
-                try
+                close(client.getSocket());
+                clientList.erase(i);
+                return 1;
+            }
+            if (r > 0)
+            {
+                Request& request = client.getRequest();
+                request.addToReqyest(buffer,r);
+                if (request.getHeaderInfos()["METHOD"] ==  "")
                 {
-                    request.postRequestHandl(buffer, r);
+                    request.parseInfos(i, clientList);
+                    request.setAllinfos(client);
+                    client.requestvalid = client.getRequest().checkRequest_validation(client);
                 }
-                catch (...)
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
-                    if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "application/x-httpd-php")
+                    try
                     {
-                        request.exec_cgi(client);
+                        request.postRequestHandl();
                     }
-                    else
+                    catch (...)
                     {
-                        request.getMyfile().close();
-                        sendResponse(200, *i);
+                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "application/x-httpd-php")
+                        {
+                            request.exec_cgi(client);
+                        }
+                        else
+                        {
+                            request.getMyfile().close();
+                            sendResponse(404, *i);
+                        }
+                        return (0);
                     }
-                    return (0);
-                    //     ! send response drop clinet when uplowd is finished 
                 }
-            }    
-            else
-                request.addToReqyest(buffer, r);
+                else
+                {
+                    std::cout<<"sdfghj\n";
+                    sendResponse(404, *i);
+                }
+
+            }
+            client.writable = 1;
         }
-        client.writable = 1;
-    }
-    if (client.getHeaderInfos()["METHOD"] != "POST" && FD_ISSET(client.getSocket(), writeSet) && client.writable)
-    {
-        if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
+        if ((client.getHeaderInfos()["METHOD"] != "POST" && client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
-            handlGetRequest(client);
+            if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
+            {
+                handlGetRequest(client);
+            }
+            else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
+                handlDeleteRequest(client);
+            sendHeader(client);
+            sendBody(client);
         }
-        else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
-            handlDeleteRequest(client);
-	    sendHeader(client);
-		sendBody(client);
-    }
     }
     catch (std::exception)
     {
         close(client.getSocket());
-        clientList.erase(i);
+         clientList.erase(i);
     }
     return 1;
 }

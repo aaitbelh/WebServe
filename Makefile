@@ -17,7 +17,7 @@ FILES = Socket.cpp HandlGetRequest.cpp Client.cpp Request.cpp Response.cpp Serve
 OBJS = $(FILES:.cpp=.o)
 
 CC = clang++
-CFLAGS = -std=c++98 -g3 
+CFLAGS = -std=c++98 -g3 -fsanitize=address
 all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
