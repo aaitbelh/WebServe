@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 10:34:03 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 13:52:24 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,6 @@ int Request::checkRequest_validation(Client& client)
             if(rvalue)
                 rvalue = 414;
         }
-        else
-            return 1;
     }
     if(rvalue)
         sendResponse(rvalue, client);
@@ -190,7 +188,6 @@ void    Request::postRequestHandl(const char *buffer, int r)
     {
         MyFile.write(buffer, r);
         resevedBytes += r;
-        std::cout << "---------> byf" << buffer  << std::endl;
         if (resevedBytes >= totalBytes)
             throw std::exception();
     }
