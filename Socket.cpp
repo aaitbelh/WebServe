@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 17:39:37 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/13 10:32:12 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,37 +143,33 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             if (client.getRes().getHeader().empty())
             {
                 request.addToReqyest(buffer,r);
-                request.parseInfos(i, clientList); // if throwing exiption
+                request.parseInfos(i, clientList);
                 request.setAllinfos(client);
                 client.requestvalid = client.getRequest().checkRequest_validation(client);
             }
-            else
+            if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
             {
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                try
                 {
-                    try
+                    request.postRequestHandl(buffer, r);
+                }
+                catch (...)
+                {
+                    if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "application/x-httpd-php")
                     {
-                        request.postRequestHandl(buffer, r);
+                        request.exec_cgi(client);
                     }
-                    catch (...)
+                    else
                     {
-                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "PHP")
-                            request.exec_cgi(client);
-                        else
-                        {
-                            try {sendResponse(200, *i);}
-                            catch(...){}
-                        }
                         request.getMyfile().close();
-                        close(i->getSocket());
-                        clientList.erase(i);
-                        return (0);
-                        //     ! send response drop clinet when uplowd is finished 
+                        sendResponse(200, *i);
                     }
-                }    
-                else
-                    request.addToReqyest(buffer, r);
-            }
+                    return (0);
+                    //     ! send response drop clinet when uplowd is finished 
+                }
+            }    
+            else
+                request.addToReqyest(buffer, r);
         }
         client.writable = 1;
     }

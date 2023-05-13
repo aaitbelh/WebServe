@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 20:50:54 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 10:34:03 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Request::Request(/* args */): resevedBytes(0)
     types_rev["image/x-icon"] = "ico";
     types_rev["image/svg+xml"] = "svg";
     types_rev["application/octet-stream"] = "default";
-    types_rev["text/php"] = "php";
+    types_rev["application/x-httpd-php"] = "php";
     types_rev["text/x-perl-script"] = "perl";
 }
 
@@ -108,40 +108,26 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
-    std::string httpRequestTmp = httpRequest.substr(pos);
+    httpRequest = httpRequest.substr(pos);
     pos = 0;
-    for(;httpRequestTmp.size();)
+    for(;httpRequest.size();)
     {
-        if(httpRequestTmp[0] == '\r' && httpRequestTmp[1] == '\n')
+        if(httpRequest[0] == '\r' && httpRequest[1] == '\n')
         {
-            httpRequestTmp = httpRequestTmp.substr(2);
+            httpRequest = httpRequest.substr(2);
             break;
         }
-        HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
-        httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
+        HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
+        httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
+    std::map<std::string, std::string>::iterator it;
+    // for (it = HeaderInfos.begin(); it != HeaderInfos.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
         openFile(types_rev[HeaderInfos["Content-Type"]]);
-        try
-        {
-            postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
-        }
-        catch (...)
-        {
-            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
-               exec_cgi(*i);
-            else
-            {
-                try {sendResponse(200, *i);}
-                catch(...){}
-            }
-            MyFile.close();
-            close(i->getSocket());
-            clientList.erase(i);
-            //     ! send response drop clinet when uplowd is finished 
-        }
     }
 }
 void    Request::openFile(std::string& extention)
@@ -151,6 +137,8 @@ void    Request::openFile(std::string& extention)
     srand(time(0));
     ss << rand();
     ss << ".";
+    if (!extention.length())
+        extention = "no_extention";
     ss << extention;
     std::string name(ss.str());
     MyFilename = name;
@@ -202,6 +190,7 @@ void    Request::postRequestHandl(const char *buffer, int r)
     {
         MyFile.write(buffer, r);
         resevedBytes += r;
+        std::cout << "---------> byf" << buffer  << std::endl;
         if (resevedBytes >= totalBytes)
             throw std::exception();
     }
@@ -378,21 +367,16 @@ void        Request::setAllinfos(Client &client)
 
 void Request::exec_cgi(Client &client)
 {
+    std::cout << "GOT TO THE CGI " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
 	int fd = open("resp", O_RDWR | O_CREAT, 0666);
 	char *arg[3];
-    env[0] = strdup("METHOD=GET"); 
-    env[1] = strdup("Content-Length=12"); 
-    env[2] = strdup("Content-Type=text/php"); 
-    env[3] = strdup("QUERY_STRING=lol"); 
+    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
     env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
-    // env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-    // env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-    // env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
-    // env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-    // env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    // env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
 	env[6] = NULL;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
@@ -432,16 +416,18 @@ void Request::exec_cgi(Client &client)
             break;
         }
     }
-    close(fd);
-    // std::fstream file2;
-	// file2.open("resp");
-	// char buf[1024];
-	// file2.read(buf, 1024);
-	// std::cout << file2.gcount() << std::endl;
-	// std::cout <<buf << std::endl;
-    client.file.clear();
-    client.file.close();
-    client.file.open("resp");
-    
-    // throw std::exception();
+    if(HeaderInfos["METHOD"] == "GET")
+    {
+        close(fd);
+        client.file.clear();
+        client.file.close();
+        client.file.open("resp");
+        std::string &header = client.getRes().getHeader();
+        struct stat b;
+        stat("resp", &b);
+        std::stringstream s;
+        s << b.st_size;
+        header.append("Content-Length: " + s.str() + "\r\n");
+    }
+    throw std::exception();
 }
