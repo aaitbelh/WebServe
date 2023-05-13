@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/12 14:14:40 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 18:00:31 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,12 +175,19 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     else
         s << buffer.st_size;
     if(tmp.getFileType(filename) == "text/php" || tmp.getFileType(filename) == "text/perl")
+    {
         client.getRequest().exec_cgi(client);
+        header.append(client.getRes().getHeader());
+    }
     else
     {
         header.append("Content-Length: " + s.str() + "\r\n");
         header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
+        header.append("\r\n");
     }
+    // std::cout << "--------------------------------------------" << std::endl;
+    // std::cout << header << std::endl;
+    // std::cout << "--------------------------------------------" << std::endl;
     return header;
 }
 void Response::fillTheHeader(Client &client)

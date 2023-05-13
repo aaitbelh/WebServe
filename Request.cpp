@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 13:52:24 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 18:05:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,9 @@ int Request::checkRequest_validation(Client& client)
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
         {
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 sendResponse(400, client);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             return 1;
         }
     }
@@ -69,9 +69,9 @@ int Request::checkRequest_validation(Client& client)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
             setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 rvalue = 400;
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
         }
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
@@ -83,7 +83,9 @@ int Request::checkRequest_validation(Client& client)
         }
     }
     if(rvalue)
+    {   
         sendResponse(rvalue, client);
+    }
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -118,10 +120,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
         httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
-    std::map<std::string, std::string>::iterator it;
-    // for (it = HeaderInfos.begin(); it != HeaderInfos.end(); ++it) {
-    //     std::cout << it->first << ": " << it->second << std::endl;
-    // }
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
@@ -160,18 +158,13 @@ char    *Request::removeContentLinght(char *buffer, int *r)
         i++;
     if (!buffer[i])
     {
-        std::cout<<"11\n";
         chunkOfChuk.append(buffer);
         return NULL;
-        std::cout<<"22\n";
     }
     std::string tem(buffer, buffer + i);
-    std::cout<<"<<<<: "<<tem<<"\n...  "<<i<<std::endl;
-    std::cout<<"rrrr: "<<*r<<std::endl;
     i += 2;
     *r -= i;
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
-    std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
         throw exception();
@@ -181,9 +174,10 @@ char    *Request::removeContentLinght(char *buffer, int *r)
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
 
-void    Request::postRequestHandl(const char *buffer, int r)
+void    Request::postRequestHandl()
 {
-
+    char    *buffer = const_cast<char *>(httpRequest.c_str());
+    int r = httpRequest.length();
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
@@ -218,18 +212,18 @@ void    Request::postRequestHandl(const char *buffer, int r)
                     return ;
                 MyFile.write(buffer, r);
                 chunkedSize -= r;
-                std::cout<<"..   >"<<chunkedSize<<std::endl;
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
-    }   
+    }
 }
 
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
+    httpRequest.clear();
     httpRequest.append(req, r);
 }
 
@@ -262,9 +256,14 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
     {
         for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
             if(it->location_path == tmp)
+            {
                 return it; 
+            }
             if(it->location_path == "/")
+            {
                 tmp_it = it;
+
+            }
         }
         tmp = tmp.erase(tmp.rfind("/"));
     }
@@ -279,6 +278,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
         std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
+
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
@@ -358,13 +358,12 @@ void        Request::setAllinfos(Client &client)
 	struct ParsConf &tmp_parsstruct = client.parsingInfos;
 	tmpstruct.host = this->getHeaderInfos()["Host"];
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
-	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
+	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
 
 void Request::exec_cgi(Client &client)
 {
-    std::cout << "GOT TO THE CGI " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
 	int fd = open("resp", O_RDWR | O_CREAT, 0666);
 	char *arg[3];
@@ -424,7 +423,7 @@ void Request::exec_cgi(Client &client)
         stat("resp", &b);
         std::stringstream s;
         s << b.st_size;
-        header.append("Content-Length: " + s.str() + "\r\n");
+        header.append("Content-Length: " + s.str());
     }
-    throw std::exception();
+    // throw std::exception();
 }
