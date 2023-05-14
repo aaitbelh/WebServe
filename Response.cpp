@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 14:49:41 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 16:31:43 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
         s << buffer.st_size;
     if(tmp.getFileType(filename) == "text/php" || tmp.getFileType(filename) == "text/perl")
     {
+        client.file_path = filename;
         client.getRequest().exec_cgi(client);
         header.append(client.getRes().getHeader());
     }

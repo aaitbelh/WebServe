@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 14:39:36 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 16:31:33 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -411,23 +411,15 @@ void Request::exec_cgi(Client &client)
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	env[6] = NULL;
+    std::cout << "wtf asa7bii " << MyFilename << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
-    arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    arg[0] = strdup((*it).c_str());
+	arg[1] = strdup((client.file_path).c_str());
 	arg[2] = NULL;
-
-    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
     char buffer[1024];
-    if(client.getHeaderInfos()["METHOD"] == "POST"){
-        while (!MyFile.eof()) {
-            MyFile.read(buffer, sizeof(buffer));
-            ssize_t bytesRead = MyFile.gcount();
-            write(file, buffer, bytesRead);
-        }
-    }
 	pid_t f = fork();
 	if(f == 0)
 	{
@@ -435,7 +427,7 @@ void Request::exec_cgi(Client &client)
 		close(fd);
         if(HeaderInfos["METHOD"] == "POST")
         {
-            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
             dup2(fd, 0);
             close(fd);    
         }
@@ -444,7 +436,13 @@ void Request::exec_cgi(Client &client)
         exit(1);
 	}
     int status = 0;
-    waitpid(f, &status, 0);
+	while(waitpid(f, &status, WNOHANG))
+    {
+        if(WIFEXITED(status))
+        {
+            break;
+        }
+    }
     if(HeaderInfos["METHOD"] == "GET")
     {
         close(fd);
@@ -471,5 +469,4 @@ void Request::exec_cgi(Client &client)
         }
         header.append("Content-Length: " + s.str() + "\r\n");
     }
-    // throw std::exception();
 }

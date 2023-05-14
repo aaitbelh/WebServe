@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 13:26:02 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 16:28:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ class Client
 	std::string dir_body;
 	std::string dirname;
 	int			contentLenghtCgi;
+	std::string file_path;
 private:
     SOCKADDRE   address;
     SOCKET      sockett;
