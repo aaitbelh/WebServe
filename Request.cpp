@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 16:31:33 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 17:38:23 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -367,6 +367,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
+            std::cout << "GOT HERE  " << std::endl;
 			return ;
 		}	
 	}
@@ -383,10 +384,11 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 {
 	std::vector<t_server> servers;
 	std::string::iterator it =  client.GetClientinfos().host.begin() + client.GetClientinfos().host.find(":");
+    client.GetClientinfos().port = client.GetClientinfos().host.substr(it - client.GetClientinfos().host.begin() + 1);
 	client.GetClientinfos().host.erase(it, client.GetClientinfos().host.end());
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
-		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
+		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front() && client.GetClientinfos().port == pars.servers[i].getFromServerMap("listen").front())
 			servers.push_back(pars.servers[i]);
 	}
 	return servers;

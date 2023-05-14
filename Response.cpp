@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 16:59:34 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 17:38:39 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ std::string find_filename(Client &client)
 	for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
 	{
 		std::string path =  client.GetClientinfos().root + "/" + *it;
-        std::cout << path << std::endl;
 		file.open(path);
 		if(file.is_open() && file.good())
         {
