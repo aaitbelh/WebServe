@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 08:39:15 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 14:39:36 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,26 +248,66 @@ void setTherootLocation(Client &client, std::vector<t_server>& servers)
 	}
 }
 
+std::vector<std::string> PathTovector(std::string element)
+{
+    std::vector<std::string> path;
+    std::string tmp;
+    for(size_t i = 0; i < element.length();)
+    {
+        while (element[i] && element[i] == '/')
+            i++;
+        while (element[i] && element[i] != '/')
+            tmp += element[i++];
+        if (tmp.length())
+        {
+            path.push_back(tmp);
+            tmp.clear();
+        }
+        if(tmp == "..")
+            throw std::exception();
+    }
+    return (path);
+}
+bool compare(t_location& a, t_location& b)
+{
+    return (a.location_path.length() > b.location_path.length());
+}
+
 std::vector<t_location>::iterator getTheLocation(Client& client, t_server &server)
 {
     std::string tmp = client.GetClientinfos().URI;
-    std::vector<t_location>::iterator tmp_it = server.locations.end();
-    while(!tmp.empty())
+    sort(server.locations.begin(), server.locations.end(), compare);
+    std::vector<t_location>::iterator it_tmp = server.locations.end();
+     std::vector<std::string> URI_path;
+    try
     {
-        for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
-            if(it->location_path == tmp)
-            {
-                return it; 
-            }
-            if(it->location_path == "/")
-            {
-                tmp_it = it;
-
-            }
-        }
-        tmp = tmp.erase(tmp.rfind("/"));
+        URI_path = PathTovector(tmp);
     }
-    return tmp_it;
+    catch(const std::exception& e)
+    {
+        sendResponse(400, client);
+    }
+    for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it)
+    {
+        std::vector<std::string> path = PathTovector(it->location_path);
+        if(path.size() > URI_path.size())
+            continue;
+        if(std::equal(path.begin(), path.end(), URI_path.begin()))
+        {
+            std::string tmp;
+            std::string root_v;
+            for(size_t i = 0; i < URI_path.size(); ++i)
+                tmp = tmp + "/" + URI_path[i];
+            client.GetClientinfos().URI = tmp;
+            root_v = it->getElemetnBylocation("root").front();
+            for(size_t i = path.size(); i < URI_path.size(); ++i)
+                root_v = root_v + "/" + URI_path[i];
+            client.GetClientinfos().root = root_v;
+            return (it);
+        }
+
+    }
+    return (it_tmp);
 }
 
 void	matchTheLocation(Client& client, std::vector<t_server> servers)
@@ -278,7 +318,6 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
         std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
-
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
@@ -324,7 +363,9 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.cgi_pass_ = 0;
 			tmpstruct.index_files = it->getElemetnBylocation("index");
 			if(it->isExist("root"))
+            {
 				tmpstruct.root = it->getElemetnBylocation("root").front();
+            }
 			tmpstruct.location_div = *it;
 			return ;
 		}	
@@ -346,9 +387,7 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
 		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
-        {
 			servers.push_back(pars.servers[i]);
-        }
 	}
 	return servers;
 }
@@ -422,7 +461,6 @@ void Request::exec_cgi(Client &client)
         char charbuf[1024];
         while(!tmpfile.eof())
         {
-            std::cout << "I GOT HERE " << std::endl;
             tmpfile.read(charbuf, 1024);
             strbuf.append(charbuf, tmpfile.gcount());
             if(strbuf.find("\r\n") != std::string::npos)

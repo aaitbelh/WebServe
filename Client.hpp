@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 08:21:13 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 13:26:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ struct all_infos
 	int allow_methods[3];
 	bool autoindex;
 	std::string root;
+	std::string alias;
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;

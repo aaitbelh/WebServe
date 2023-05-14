@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 17:25:25 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 13:24:21 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                 clientList.erase(i);
                 return (-1);
             }
-            // buffer[r] = '\0';÷
             if(r <= 0)
             {
                 close(client.getSocket());
@@ -147,7 +146,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid )
                 {
                     try
                     {
@@ -156,9 +155,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     catch (...)
                     {
                         if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "application/x-httpd-php")
-                        {
                             request.exec_cgi(client);
-                        }
                         else
                         {
                             request.getMyfile().close();
@@ -173,8 +170,10 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
         }
         if ((client.getHeaderInfos()["METHOD"] != "POST")  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
+                std::cout << "HIIII " << std::endl;
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
             {
+                std::cout << "OKOKO " << std::endl;
                 handlGetRequest(client);
             }
             else if(client.getHeaderInfos()["METHOD"] == "DELETE" && !client.requestvalid)
