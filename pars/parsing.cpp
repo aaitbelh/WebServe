@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/06 18:52:49 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 18:25:07 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ void ParsConf::fill_server()
 	{
 		if(vec[j] == "};")
 		{
-			servers.push_back(tmp_server);
+			servers_.push_back(tmp_server);
 			tmp_server.each_server.clear();
 		}
 		tmp_server.each_server.push_back(vec[j]);
@@ -55,13 +55,13 @@ void ParsConf::fill_server_element()
 	std::string arr[4] = {"host", "listen", "max_client_body_size", "server_name"};
 	std::string loc_arr[7] = {"allow_methods", "autoindex", "root", "upload_pass", "return", "cgi_pass", "index"};
 	t_location tmp_location;
-	for (unsigned int i = 0; i < servers.size() ; i++)
+	for (unsigned int i = 0; i < servers_.size() ; i++)
 	{
 		count_location = 0;
 		closed = 0;
-		for(unsigned int j = 0;j < servers[i].each_server.size() ;j++)
+		for(unsigned int j = 0;j < servers_[i].each_server.size() ;j++)
 		{
-			std::list <std::string> mylist = split_string(servers[i].each_server[j]);
+			std::list <std::string> mylist = split_string(servers_[i].each_server[j]);
 			std::list<std::string>::iterator it;
 			int index = check_validelem(mylist.front());
 			if(index != -1)
@@ -80,7 +80,7 @@ void ParsConf::fill_server_element()
 				mylist.pop_front();
 				if(index != 3)
 					check_value(mylist.front());
-				servers[i].server_map.insert(std::pair<std::string, std::list<string> >(arr[index], mylist));
+				servers_[i].server_map.insert(std::pair<std::string, std::list<string> >(arr[index], mylist));
 			}
 			else if(mylist.front() == "error_page")
 			{
@@ -93,7 +93,7 @@ void ParsConf::fill_server_element()
 					duplicate.push_back(mylist.front());
 					std::list<std::string>::iterator it = mylist.begin();
 					it++;
-					servers[i].error_page.insert(std::pair<int, std::string>(atoi(mylist.front().c_str()), *it));
+					servers_[i].error_page.insert(std::pair<int, std::string>(atoi(mylist.front().c_str()), *it));
 			}
 			else if(mylist.front() == "location")
 			{
@@ -113,7 +113,7 @@ void ParsConf::fill_server_element()
 				closed += 1;
 				check_duplcates(duplocation, 1);
 				duplocation.clear();
-				servers[i].locations.push_back(tmp_location);
+				servers_[i].locations.push_back(tmp_location);
 				tmp_location.location_map.clear();
 				tmp_location.location_path.clear();
 			}
@@ -126,12 +126,31 @@ void ParsConf::fill_server_element()
 				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(key, mylist));
 			}
 		}
+		split_host();
+		check_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
 		if(closed != count_location)
 		{
 			std::cout << "locations : syntax error" << std::endl;
 			exit (0);
+		}
+	}
+}
+
+void ParsConf::split_host()
+{
+			std::string s;
+			size_t _find = 0;
+	for(int i = 0; i < servers_.size();i++)
+	{
+		std::string str = servers_[i].server_map["host"].front();
+		int j = 0;
+		while((_find = str.find('.')) != std::string::npos)
+		{
+			s = str.substr(0, _find);
+			if(atoi(s.c_str()) > 256 || atoi(s.c_str()) < 0)
+				throw std::out_of_range("check host please!!");
 		}
 	}
 }

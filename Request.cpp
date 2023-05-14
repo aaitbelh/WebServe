@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 20:50:54 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 16:22:29 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,9 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         catch (...)
         {
             if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
-               exec_cgi(*i);
+            {
+                exec_cgi(*i);
+            }
             else
             {
                 try {sendResponse(200, *i);}
@@ -378,6 +380,7 @@ void        Request::setAllinfos(Client &client)
 
 void Request::exec_cgi(Client &client)
 {
+    std::cout << "server " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
 	int fd = open("resp", O_RDWR | O_CREAT, 0666);
 	char *arg[3];
@@ -397,18 +400,18 @@ void Request::exec_cgi(Client &client)
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
     arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+	arg[1] = strdup("/Users/mamellal/Desktop/wer/f.php");
 	arg[2] = NULL;
 
     int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
     char buffer[1024];
-    if(client.getHeaderInfos()["METHOD"] == "POST"){
-        while (!MyFile.eof()) {
-            MyFile.read(buffer, sizeof(buffer));
-            ssize_t bytesRead = MyFile.gcount();
-            write(file, buffer, bytesRead);
-        }
-    }
+    // if(client.getHeaderInfos()["METHOD"] == "POST"){
+    //     while (!MyFile.eof()) {
+    //         MyFile.read(buffer, sizeof(buffer));
+    //         ssize_t bytesRead = MyFile.gcount();
+    //         write(file, buffer, bytesRead);
+    //     }
+    // }
 	pid_t f = fork();
 	if(f == 0)
 	{
@@ -420,8 +423,8 @@ void Request::exec_cgi(Client &client)
             dup2(fd, 0);
             close(fd);    
         }
-		execve(arg[0], arg, env);
-        std::cout << "execve failure" <<std::endl;
+		if(execve(arg[0], arg, env) == -1)
+            std::cout << "execve failure" <<std::endl;
         exit(1);
 	}
     int status = 0;
@@ -439,9 +442,12 @@ void Request::exec_cgi(Client &client)
 	// file2.read(buf, 1024);
 	// std::cout << file2.gcount() << std::endl;
 	// std::cout <<buf << std::endl;
-    client.file.clear();
-    client.file.close();
-    client.file.open("resp");
+    // if(HeaderInfos["METHOD"] == "GET")
+    
+    //     client.file.clear();
+    //     client.file.close();
+    //     client.file.open("resp");
+    
     
     // throw std::exception();
 }
