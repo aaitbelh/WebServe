@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 17:46:51 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 08:21:13 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ class Client
 	struct all_infos& GetClientinfos();
 	std::string dir_body;
 	std::string dirname;
+	int			contentLenghtCgi;
 private:
     SOCKADDRE   address;
     SOCKET      sockett;

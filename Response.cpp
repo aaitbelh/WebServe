@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 18:00:31 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/13 18:40:20 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,9 +167,9 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     }
     stat(filename.c_str(), &buffer);
     header.append("Connection: close\r\n");
-    header.append("Server: ");
-	header.append(client.GetClientinfos().server_name);
-    header.append("\r\n");
+    // header.append("Server: ");
+	// header.append(client.GetClientinfos().server_name);
+    // header.append("\r\n");
     if(client.is_dir)
         s <<  buffer.st_size + calcluateLen(client);    
     else

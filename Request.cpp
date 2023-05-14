@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 18:05:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 08:39:15 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -365,7 +365,7 @@ void        Request::setAllinfos(Client &client)
 void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_RDWR | O_CREAT, 0666);
+	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
     env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
@@ -405,13 +405,7 @@ void Request::exec_cgi(Client &client)
         exit(1);
 	}
     int status = 0;
-	while(waitpid(f, &status, WNOHANG))
-    {
-        if(WIFEXITED(status))
-        {
-            break;
-        }
-    }
+    waitpid(f, &status, 0);
     if(HeaderInfos["METHOD"] == "GET")
     {
         close(fd);
@@ -422,8 +416,22 @@ void Request::exec_cgi(Client &client)
         struct stat b;
         stat("resp", &b);
         std::stringstream s;
-        s << b.st_size;
-        header.append("Content-Length: " + s.str());
+        client.contentLenghtCgi = 0;
+        std::ifstream tmpfile("resp");
+        std::string strbuf;
+        char charbuf[1024];
+        while(!tmpfile.eof())
+        {
+            std::cout << "I GOT HERE " << std::endl;
+            tmpfile.read(charbuf, 1024);
+            strbuf.append(charbuf, tmpfile.gcount());
+            if(strbuf.find("\r\n") != std::string::npos)
+            {
+                s << b.st_size - strbuf.find("\r\n\r\n") - 4;
+                break ;
+            }        
+        }
+        header.append("Content-Length: " + s.str() + "\r\n");
     }
     // throw std::exception();
 }
