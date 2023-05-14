@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/14 18:54:34 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 20:21:13 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,17 +142,32 @@ void ParsConf::fill_server_element()
 void ParsConf::check_host()
 {
 	std::string ip[2];
-	ip[0] = servers_[0].server_map["host"].front();
-	ip[1] = servers_[0].server_map["port"].front();
-	std::cout <<"before :: : : :: : : : " <<servers_.size()<< std::endl;
+	int r = 0;
+	servers.push_back(servers_[0]); //  8080
 	for(unsigned int i = 1; i < servers_.size(); i++)
 	{
-		if(servers_[i].server_map["host"].front() == ip[0] && servers_[i].server_map["host"].front() == ip[1])
-			continue ;
-		else
+		for(int j = 0; j < servers.size();j++)
+		{	 // 8080										//808
+			if(servers[j].server_map["host"].front() ==  servers_[i].server_map["host"].front()
+			&& servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
+			{
+				std::cout << "listen :"<< j << " | " << i <<" i: " <<servers[j].server_map["listen"].front()<< " |||| " <<servers_[i].server_map["listen"].front() <<std::endl;
+				r++;
+			}
+		}
+		if(r == 0)
 			servers.push_back(servers_[i]);
+		// std::cout <<"host :: : : :: : : : " <<servers[i].server_map["host"].front()<< std::endl;
 	}
 	std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
+	// std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
+std::cout << "********************************"<< std::endl;
+	for(int i = 0; i < servers.size(); i++)
+	{
+		std::cout << servers[i].server_map["listen"].front() << std::endl;
+		std::cout << servers[i].server_map["host"].front() << std::endl;
+	}
+	servers_.clear();
 }
 void ParsConf::split_host()
 {
