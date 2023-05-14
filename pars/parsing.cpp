@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/12 22:00:41 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 15:41:22 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,22 @@ void ParsConf::fill_server_element()
 		{
 			std::cout << "locations : syntax error" << std::endl;
 			exit (0);
+		}
+	}
+}
+void ParsConf::split_host()
+{
+			std::string s;
+			size_t _find = 0;
+	for(int i = 0; i < servers.size();i++)
+	{
+		std::string str = servers[i].server_map["host"].front();
+		int j = 0;
+		while((_find = str.find('.')) != std::string::npos)
+		{
+			s = str.substr(0, _find);
+			if(atoi(s.c_str()) > 256 || atoi(s.c_str()) < 0)
+				throw std::out_of_range("check host please!!");
 		}
 	}
 }

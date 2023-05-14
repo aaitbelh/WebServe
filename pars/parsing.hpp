@@ -74,5 +74,6 @@ class ParsConf
 	std::vector<t_server>& getServer();
 	std::vector<t_location>::iterator getAll_locations(std::vector <t_server>::iterator it);
 	void exec_cgi();
+	void split_host();
 };
 #endif
