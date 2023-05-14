@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 08:39:15 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 11:42:16 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,12 +372,13 @@ void Request::exec_cgi(Client &client)
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	env[6] = NULL;
+    std::cout << "wtf asa7bii " << client.file_path << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
-    arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    arg[0] = strdup((*it).c_str());
+	arg[1] = strdup((client.file_path).c_str());
 	arg[2] = NULL;
 
     int file = open("body", O_RDWR | O_CREAT | O_TRUNC);

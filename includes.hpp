@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   includes.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:43:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/29 10:49:09 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 11:19:27 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define INCLUDES_HPP
 
 #include "define.hpp"
+#include "pars/parsing.hpp"
 #include "header.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
