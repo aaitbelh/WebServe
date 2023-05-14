@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 16:22:29 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 18:26:19 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Request::Request(/* args */): resevedBytes(0)
     types_rev["image/x-icon"] = "ico";
     types_rev["image/svg+xml"] = "svg";
     types_rev["application/octet-stream"] = "default";
-    types_rev["text/php"] = "php";
+    types_rev["application/x-httpd-php"] = "php";
     types_rev["text/x-perl-script"] = "perl";
 }
 
@@ -59,9 +59,9 @@ int Request::checkRequest_validation(Client& client)
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
         {
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 sendResponse(400, client);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             return 1;
         }
     }
@@ -69,9 +69,9 @@ int Request::checkRequest_validation(Client& client)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
             setInfos_header(client, client.server.error_page[400], &rvalue);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
             if(rvalue)
                 rvalue = 400;
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
         }
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
@@ -81,11 +81,11 @@ int Request::checkRequest_validation(Client& client)
             if(rvalue)
                 rvalue = 414;
         }
-        else
-            return 1;
     }
     if(rvalue)
+    {   
         sendResponse(rvalue, client);
+    }
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -108,42 +108,22 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
-    std::string httpRequestTmp = httpRequest.substr(pos);
+    httpRequest = httpRequest.substr(pos);
     pos = 0;
-    for(;httpRequestTmp.size();)
+    for(;httpRequest.size();)
     {
-        if(httpRequestTmp[0] == '\r' && httpRequestTmp[1] == '\n')
+        if(httpRequest[0] == '\r' && httpRequest[1] == '\n')
         {
-            httpRequestTmp = httpRequestTmp.substr(2);
+            httpRequest = httpRequest.substr(2);
             break;
         }
-        HeaderInfos[httpRequestTmp.substr(pos, httpRequestTmp.find(":"))] = httpRequestTmp.substr(httpRequestTmp.find(": ") + 2, httpRequestTmp.find("\r\n") - (httpRequestTmp.find(": ") + 2));
-        httpRequestTmp = httpRequestTmp.substr(httpRequestTmp.find("\r\n") + 2);
+        HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
+        httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
         openFile(types_rev[HeaderInfos["Content-Type"]]);
-        try
-        {
-            postRequestHandl(const_cast<char *>(httpRequestTmp.c_str()), httpRequestTmp.length());
-        }
-        catch (...)
-        {
-            if (types_rev[HeaderInfos["Content-Type"]] == "perl" || types_rev[HeaderInfos["Content-Type"]] == "PHP")
-            {
-                exec_cgi(*i);
-            }
-            else
-            {
-                try {sendResponse(200, *i);}
-                catch(...){}
-            }
-            MyFile.close();
-            close(i->getSocket());
-            clientList.erase(i);
-            //     ! send response drop clinet when uplowd is finished 
-        }
     }
 }
 void    Request::openFile(std::string& extention)
@@ -153,6 +133,8 @@ void    Request::openFile(std::string& extention)
     srand(time(0));
     ss << rand();
     ss << ".";
+    if (!extention.length())
+        extention = "no_extention";
     ss << extention;
     std::string name(ss.str());
     MyFilename = name;
@@ -176,18 +158,13 @@ char    *Request::removeContentLinght(char *buffer, int *r)
         i++;
     if (!buffer[i])
     {
-        std::cout<<"11\n";
         chunkOfChuk.append(buffer);
         return NULL;
-        std::cout<<"22\n";
     }
     std::string tem(buffer, buffer + i);
-    std::cout<<"<<<<: "<<tem<<"\n...  "<<i<<std::endl;
-    std::cout<<"rrrr: "<<*r<<std::endl;
     i += 2;
     *r -= i;
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
-    std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
         throw exception();
@@ -197,9 +174,10 @@ char    *Request::removeContentLinght(char *buffer, int *r)
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
 
-void    Request::postRequestHandl(const char *buffer, int r)
+void    Request::postRequestHandl()
 {
-
+    char    *buffer = const_cast<char *>(httpRequest.c_str());
+    int r = httpRequest.length();
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
@@ -234,18 +212,18 @@ void    Request::postRequestHandl(const char *buffer, int r)
                     return ;
                 MyFile.write(buffer, r);
                 chunkedSize -= r;
-                std::cout<<"..   >"<<chunkedSize<<std::endl;
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
-    }   
+    }
 }
 
 
 size_t  Request::getLnght(){ return (resevedBytes);}
 void    Request::addToReqyest(const char *req, int r)
 {
+    httpRequest.clear();
     httpRequest.append(req, r);
 }
 
@@ -270,21 +248,66 @@ void setTherootLocation(Client &client, std::vector<t_server>& servers)
 	}
 }
 
+std::vector<std::string> PathTovector(std::string element)
+{
+    std::vector<std::string> path;
+    std::string tmp;
+    for(size_t i = 0; i < element.length();)
+    {
+        while (element[i] && element[i] == '/')
+            i++;
+        while (element[i] && element[i] != '/')
+            tmp += element[i++];
+        if (tmp.length())
+        {
+            path.push_back(tmp);
+            tmp.clear();
+        }
+        if(tmp == "..")
+            throw std::exception();
+    }
+    return (path);
+}
+bool compare(t_location& a, t_location& b)
+{
+    return (a.location_path.length() > b.location_path.length());
+}
+
 std::vector<t_location>::iterator getTheLocation(Client& client, t_server &server)
 {
     std::string tmp = client.GetClientinfos().URI;
-    std::vector<t_location>::iterator tmp_it = server.locations.end();
-    while(!tmp.empty())
+    sort(server.locations.begin(), server.locations.end(), compare);
+    std::vector<t_location>::iterator it_tmp = server.locations.end();
+     std::vector<std::string> URI_path;
+    try
     {
-        for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
-            if(it->location_path == tmp)
-                return it; 
-            if(it->location_path == "/")
-                tmp_it = it;
-        }
-        tmp = tmp.erase(tmp.rfind("/"));
+        URI_path = PathTovector(tmp);
     }
-    return tmp_it;
+    catch(const std::exception& e)
+    {
+        sendResponse(400, client);
+    }
+    for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it)
+    {
+        std::vector<std::string> path = PathTovector(it->location_path);
+        if(path.size() > URI_path.size())
+            continue;
+        if(std::equal(path.begin(), path.end(), URI_path.begin()))
+        {
+            std::string tmp;
+            std::string root_v;
+            for(size_t i = 0; i < URI_path.size(); ++i)
+                tmp = tmp + "/" + URI_path[i];
+            client.GetClientinfos().URI = tmp;
+            root_v = it->getElemetnBylocation("root").front();
+            for(size_t i = path.size(); i < URI_path.size(); ++i)
+                root_v = root_v + "/" + URI_path[i];
+            client.GetClientinfos().root = root_v;
+            return (it);
+        }
+
+    }
+    return (it_tmp);
 }
 
 void	matchTheLocation(Client& client, std::vector<t_server> servers)
@@ -340,8 +363,11 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.cgi_pass_ = 0;
 			tmpstruct.index_files = it->getElemetnBylocation("index");
 			if(it->isExist("root"))
+            {
 				tmpstruct.root = it->getElemetnBylocation("root").front();
+            }
 			tmpstruct.location_div = *it;
+            std::cout << "GOT HERE  " << std::endl;
 			return ;
 		}	
 	}
@@ -358,13 +384,12 @@ std::vector<t_server> GettheServer(ParsConf &pars, Client &client)
 {
 	std::vector<t_server> servers;
 	std::string::iterator it =  client.GetClientinfos().host.begin() + client.GetClientinfos().host.find(":");
+    client.GetClientinfos().port = client.GetClientinfos().host.substr(it - client.GetClientinfos().host.begin() + 1);
 	client.GetClientinfos().host.erase(it, client.GetClientinfos().host.end());
 	for(size_t i = 0; i < pars.servers.size(); ++i)
 	{
-		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front())
-        {
+		if(client.GetClientinfos().host == pars.servers[i].getFromServerMap("host").front() && client.GetClientinfos().port == pars.servers[i].getFromServerMap("listen").front())
 			servers.push_back(pars.servers[i]);
-        }
 	}
 	return servers;
 }
@@ -374,7 +399,7 @@ void        Request::setAllinfos(Client &client)
 	struct ParsConf &tmp_parsstruct = client.parsingInfos;
 	tmpstruct.host = this->getHeaderInfos()["Host"];
 	tmpstruct.URI = this->getHeaderInfos()["URI"];
-	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);	
+	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
 
@@ -382,36 +407,22 @@ void Request::exec_cgi(Client &client)
 {
     std::cout << "server " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_RDWR | O_CREAT, 0666);
+	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
-    env[0] = strdup("METHOD=GET"); 
-    env[1] = strdup("Content-Length=12"); 
-    env[2] = strdup("Content-Type=text/php"); 
-    env[3] = strdup("QUERY_STRING=lol"); 
+    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
-    // env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-    // env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-    // env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
-    // env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-    // env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    // env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	env[6] = NULL;
+    std::cout << "wtf asa7bii " << MyFilename << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
-    arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/mamellal/Desktop/wer/f.php");
+    arg[0] = strdup((*it).c_str());
+	arg[1] = strdup((client.file_path).c_str());
 	arg[2] = NULL;
-
-    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
     char buffer[1024];
-    // if(client.getHeaderInfos()["METHOD"] == "POST"){
-    //     while (!MyFile.eof()) {
-    //         MyFile.read(buffer, sizeof(buffer));
-    //         ssize_t bytesRead = MyFile.gcount();
-    //         write(file, buffer, bytesRead);
-    //     }
-    // }
 	pid_t f = fork();
 	if(f == 0)
 	{
@@ -419,7 +430,7 @@ void Request::exec_cgi(Client &client)
 		close(fd);
         if(HeaderInfos["METHOD"] == "POST")
         {
-            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
             dup2(fd, 0);
             close(fd);    
         }
@@ -435,19 +446,30 @@ void Request::exec_cgi(Client &client)
             break;
         }
     }
-    close(fd);
-    // std::fstream file2;
-	// file2.open("resp");
-	// char buf[1024];
-	// file2.read(buf, 1024);
-	// std::cout << file2.gcount() << std::endl;
-	// std::cout <<buf << std::endl;
-    // if(HeaderInfos["METHOD"] == "GET")
-    
-    //     client.file.clear();
-    //     client.file.close();
-    //     client.file.open("resp");
-    
-    
-    // throw std::exception();
+    if(HeaderInfos["METHOD"] == "GET")
+    {
+        close(fd);
+        client.file.clear();
+        client.file.close();
+        client.file.open("resp");
+        std::string &header = client.getRes().getHeader();
+        struct stat b;
+        stat("resp", &b);
+        std::stringstream s;
+        client.contentLenghtCgi = 0;
+        std::ifstream tmpfile("resp");
+        std::string strbuf;
+        char charbuf[1024];
+        while(!tmpfile.eof())
+        {
+            tmpfile.read(charbuf, 1024);
+            strbuf.append(charbuf, tmpfile.gcount());
+            if(strbuf.find("\r\n") != std::string::npos)
+            {
+                s << b.st_size - strbuf.find("\r\n\r\n") - 4;
+                break ;
+            }        
+        }
+        header.append("Content-Length: " + s.str() + "\r\n");
+    }
 }

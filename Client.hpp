@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/11 17:46:51 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 17:18:54 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ class Response;
 struct all_infos
 {
 	std::string host;
+	std::string port;
 	std::string server_name;
 	std::string URI;
 	std::string upload_loc;
@@ -28,6 +29,7 @@ struct all_infos
 	int allow_methods[3];
 	bool autoindex;
 	std::string root;
+	std::string alias;
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;
@@ -69,6 +71,8 @@ class Client
 	struct all_infos& GetClientinfos();
 	std::string dir_body;
 	std::string dirname;
+	int			contentLenghtCgi;
+	std::string file_path;
 private:
     SOCKADDRE   address;
     SOCKET      sockett;

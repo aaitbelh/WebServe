@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/14 18:25:07 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 18:54:34 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ void ParsConf::fill_server()
 	}
 	fill_server_element();
 }
+
 void ParsConf::fill_server_element()
 {
 	std::vector<std::string> duplicate;
@@ -127,7 +128,6 @@ void ParsConf::fill_server_element()
 			}
 		}
 		split_host();
-		check_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
 		if(closed != count_location)
@@ -136,15 +136,31 @@ void ParsConf::fill_server_element()
 			exit (0);
 		}
 	}
+	check_host();
 }
 
+void ParsConf::check_host()
+{
+	std::string ip[2];
+	ip[0] = servers_[0].server_map["host"].front();
+	ip[1] = servers_[0].server_map["port"].front();
+	std::cout <<"before :: : : :: : : : " <<servers_.size()<< std::endl;
+	for(unsigned int i = 1; i < servers_.size(); i++)
+	{
+		if(servers_[i].server_map["host"].front() == ip[0] && servers_[i].server_map["host"].front() == ip[1])
+			continue ;
+		else
+			servers.push_back(servers_[i]);
+	}
+	std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
+}
 void ParsConf::split_host()
 {
-			std::string s;
-			size_t _find = 0;
-	for(int i = 0; i < servers_.size();i++)
+	std::string s;
+	size_t _find = 0;
+	for(int i = 0; i < servers.size();i++)
 	{
-		std::string str = servers_[i].server_map["host"].front();
+		std::string str = servers[i].server_map["host"].front();
 		int j = 0;
 		while((_find = str.find('.')) != std::string::npos)
 		{

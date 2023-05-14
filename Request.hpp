@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/11 17:02:39 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 13:21:24 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ public:
     std::map<std::string, std::string>& getHeaderInfos();
     void setToFile(const std::string& str);
     size_t  getResevedByts();
-    void    postRequestHandl(const char *bufefr, int r);
+    void    postRequestHandl();
 	std::fstream&    getMyfile();
     void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
