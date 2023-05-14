@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 16:31:43 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 16:59:34 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,7 +190,7 @@ void Response::fillTheHeader(Client &client)
 {
 	checkRediraction(client);
     std::string filename = find_filename(client);
-    if(fileneame == "")
+    if(filename == "")
         filename = client.server.error_page[404];
     int Rvalue = 0;
     this->header = setInfos_header(client, filename, &Rvalue);
