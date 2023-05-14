@@ -397,12 +397,12 @@ void Request::exec_cgi(Client &client)
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+    env[5] = strdup("/Users/ael-hayy/Desktop/WebServe/f.php");
 	env[6] = NULL;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
     arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/aaitbelh/Desktop/mamellaweb/f.php");
+	arg[1] = strdup("/Users/ael-hayy/Desktop/WebServe/f.php");
 	arg[2] = NULL;
 
     int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
