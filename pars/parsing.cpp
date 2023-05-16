@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/15 21:40:48 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:09:25 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,12 @@ void ParsConf::fill_server_element()
 				std::string key = mylist.front();
 				duplocation.push_back(mylist.front());
 				mylist.pop_front();
+				if(_index == 1)
+				{
+					int autoi = atoi((mylist.front()).c_str()) ;
+					if(autoi != 1 && autoi != 0)
+						throw std::out_of_range("check auto index");
+				}
 				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(key, mylist));
 			}
 		}
@@ -187,8 +193,16 @@ void ParsConf::split_host()
 }
 void ParsConf::check_value(std::string &value)
 {
+	std::cout << " this is value "<< value<< std::endl; 
 	for(unsigned int i = 0; i < value.size(); i++)
 	{
+		if(value[i] == '.')
+		{
+			if(i == value.size())
+				throw std::out_of_range("there is dot at end of host");
+			else if(value[i + 1] == '.')
+				throw std::out_of_range("there is a series of dots in host");
+		}
 		if(!isdigit(value[i]) && value[i] != '.')
 		{
 			std::cout << "value format is incorrect" << std::endl;
@@ -227,7 +241,7 @@ void ParsConf::check_element(std::vector<std::string> &vec)
 	std::string arr[5] = {"host", "listen", "max_client_body_size", "server_name", "location"};
 	int i = -1;
 	while(++i < 5)
-	{
+	{		
 		if (std::find(vec.begin(), vec.end(), arr[i]) == vec.end()){
 			std::cout << "your element in your file not enough"<< std::endl;
 			exit (0);

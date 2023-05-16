@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 13:23:20 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 13:32:31 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ int main(int ac, char **av)
             Server s(pars.servers[index % pars.servers.size()].server_map["host"].front(), pars.servers[index % pars.servers.size()].server_map["listen"].front());
 		    s.pars = pars;
             s.serverRun(pars.servers[index % pars.servers.size()]);
+            std::cout << pars.servers[index % pars.servers.size()].server_map["listen"].front()<<std::endl;
             index++;
         }
         return (0);
