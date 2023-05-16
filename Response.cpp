@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 17:38:39 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:09:31 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,18 +71,23 @@ int calcluateLen(Client &client)
 }
 std::string find_filename(Client &client)
 {
-	std::string filename;
+	std::string filename = client.GetClientinfos().root;
+    if(filename.empty())
+        filename =client.GetClientinfos().URI;
 	std::ifstream file;
-	for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
-	{
-		std::string path =  client.GetClientinfos().root + "/" + *it;
-		file.open(path);
-		if(file.is_open() && file.good())
+    struct stat buffer;
+    stat(filename.c_str(), &buffer);
+    if(S_ISDIR(buffer.st_mode))
+    {
+        for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
         {
-			return path;
+            std::string path =  client.GetClientinfos().alias + "/" + *it;
+            file.open(path);
+            if(file.is_open() && file.good())
+                return path;
         }
-	}
-	return "";
+    }
+	return client.GetClientinfos().alias;
 }
 void Response::checkRediraction(Client &client)
 {
@@ -104,13 +109,14 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     std::string header;
     Response tmp;
     std::map<std::string, std::string> &request = client.getRequest().getHeaderInfos();
+    std::cout << "filename " << filename << std::endl;
     struct stat buffer;
     std::stringstream s;
     *Rvalue = 0;
     stat(filename.c_str(), &buffer);
     client.file.open(filename);
     header = request["VERSION"];
-    if(client.file.good() && S_ISDIR(buffer.st_mode))
+    if(S_ISDIR(buffer.st_mode))
     {
         if(!client.GetClientinfos().autoindex){
             header += " 403 Forbiden\r\n";
