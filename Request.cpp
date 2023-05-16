@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 18:26:19 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 10:45:43 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,11 +402,25 @@ void        Request::setAllinfos(Client &client)
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
+// std::string generaterandname()
+// {
+//     std::string str;
+
+//     std::srand(std::time(0));  // Seed the random number generator
+
+//     for (int i = 0; i < 10; ++i) {
+//         char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
+//         string += c;
+//     }
+//     std::cout << << std:endl;
+//     return randomString;
+// }
 
 void Request::exec_cgi(Client &client)
 {
     std::cout << "server " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
+    // std::stirng = generaterandname();
 	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 

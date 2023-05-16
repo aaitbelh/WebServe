@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 13:33:03 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 13:23:20 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 void Server::serverRun(t_server &server)
 {
     signal(SIGPIPE, SIG_IGN);
-    while (true)
-    {
+    // while (true)
+    // {
+        std::cout << "wtf is going on"<<std::endl;
         fd_set  readSet;
         fd_set  writeSet;
         setSocketForReadAndWrite(&readSet, &writeSet, socketListen());
@@ -34,7 +35,7 @@ void Server::serverRun(t_server &server)
         }
      
     std::cout<<"server 377   \n";
-    }
+    // }
 }
 Server::Server(std::string host, std::string port):socketListen(host.c_str(), port.c_str()), clientList()
 {
@@ -53,9 +54,14 @@ int main(int ac, char **av)
         ParsConf pars;
         pars.countserver(av[1]);
         pars.fill_server();
-        Server s(pars.servers[0].server_map["host"].front(), pars.servers[0].server_map["listen"].front());
-		s.pars = pars;
-        s.serverRun(pars.servers[0]);
+        size_t index = 0;
+        while(1)
+        {
+            Server s(pars.servers[index % pars.servers.size()].server_map["host"].front(), pars.servers[index % pars.servers.size()].server_map["listen"].front());
+		    s.pars = pars;
+            s.serverRun(pars.servers[index % pars.servers.size()]);
+            index++;
+        }
         return (0);
     }
     std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
