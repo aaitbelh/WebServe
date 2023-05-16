@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/16 17:09:25 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 18:20:18 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void ParsConf::fill_server()
 	t_server tmp_server;
 	for(unsigned int j = 0; j < vec.size() ; j++)
 	{
+		std::cout << vec[j] << std::endl;
 		if(vec[j] == "};")
 		{
 			servers_.push_back(tmp_server);
@@ -67,6 +68,8 @@ void ParsConf::fill_server_element()
 			int index = check_validelem(mylist.front());
 			if(index != -1)
 			{
+				std::cout << servers_[i].each_server[j] << std::endl;
+				std::cout << index << std::cout << endl;
 				if(index != 3 && mylist.size() != 2)
 				{
 					std::cout << "value of " << arr[index] << " not found or there is a lot of values"<<std::endl;
@@ -136,9 +139,9 @@ void ParsConf::fill_server_element()
 		split_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
-		if(closed != count_location)
+		if(closed != count_location || closed_brack != count_server)
 		{
-			std::cout << "locations : syntax error" << std::endl;
+			std::cout << "locations or server: syntax error" << std::endl;
 			exit (0);
 		}
 	}
@@ -215,6 +218,7 @@ void ParsConf::check_duplcates(std::vector<std::string> &duplicate, int check)
 	for (std::vector<std::string>::size_type i = 0; i < duplicate.size(); ++i) {
 	    for (std::vector<std::string>::size_type j = i + 1; j < duplicate.size(); ++j) {
 	        if (duplicate[i] == duplicate[j] && duplicate[i] != "location") {
+				std::cout << duplicate[i];
 	            std::cout << "there is duplicate" << std::endl;
 				exit(0);
 	        }
@@ -300,15 +304,19 @@ void ParsConf::brackets_errors()
 	int open = 0;
 	while(i < vec.size())
 	{
+		std::cout << "open " << open << vec[i] << std::endl;
 		if(vec[i] == "{" && !open)
 			open = 1;
-		else if(vec[i] == "{" && open)
+		else if((vec[i] == "{" && open))
 		{
 			std::cout << "there is problem in brackets "<< std::endl;
 			exit (0);
 		}
 		if(vec[i] == "};" && open)
+		{
 			open = 0;
+			closed_brack++;
+		}
 		else if(vec[i] == "};" && !open)
 		{
 			std::cout <<"there is problem in brackets"<< std::endl;
