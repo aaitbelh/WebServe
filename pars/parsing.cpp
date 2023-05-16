@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/14 15:41:22 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:09:25 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,13 +41,14 @@ void ParsConf::fill_server()
 	{
 		if(vec[j] == "};")
 		{
-			servers.push_back(tmp_server);
+			servers_.push_back(tmp_server);
 			tmp_server.each_server.clear();
 		}
 		tmp_server.each_server.push_back(vec[j]);
 	}
 	fill_server_element();
 }
+
 void ParsConf::fill_server_element()
 {
 	std::vector<std::string> duplicate;
@@ -55,13 +56,13 @@ void ParsConf::fill_server_element()
 	std::string arr[4] = {"host", "listen", "max_client_body_size", "server_name"};
 	std::string loc_arr[7] = {"allow_methods", "autoindex", "root", "upload_pass", "return", "cgi_pass", "index"};
 	t_location tmp_location;
-	for (unsigned int i = 0; i < servers.size() ; i++)
+	for (unsigned int i = 0; i < servers_.size() ; i++)
 	{
 		count_location = 0;
 		closed = 0;
-		for(unsigned int j = 0;j < servers[i].each_server.size() ;j++)
+		for(unsigned int j = 0;j < servers_[i].each_server.size() ;j++)
 		{
-			std::list <std::string> mylist = split_string(servers[i].each_server[j]);
+			std::list <std::string> mylist = split_string(servers_[i].each_server[j]);
 			std::list<std::string>::iterator it;
 			int index = check_validelem(mylist.front());
 			if(index != -1)
@@ -80,7 +81,7 @@ void ParsConf::fill_server_element()
 				mylist.pop_front();
 				if(index != 3)
 					check_value(mylist.front());
-				servers[i].server_map.insert(std::pair<std::string, std::list<string> >(arr[index], mylist));
+				servers_[i].server_map.insert(std::pair<std::string, std::list<string> >(arr[index], mylist));
 			}
 			else if(mylist.front() == "error_page")
 			{
@@ -93,7 +94,7 @@ void ParsConf::fill_server_element()
 					duplicate.push_back(mylist.front());
 					std::list<std::string>::iterator it = mylist.begin();
 					it++;
-					servers[i].error_page.insert(std::pair<int, std::string>(atoi(mylist.front().c_str()), *it));
+					servers_[i].error_page.insert(std::pair<int, std::string>(atoi(mylist.front().c_str()), *it));
 			}
 			else if(mylist.front() == "location")
 			{
@@ -113,7 +114,7 @@ void ParsConf::fill_server_element()
 				closed += 1;
 				check_duplcates(duplocation, 1);
 				duplocation.clear();
-				servers[i].locations.push_back(tmp_location);
+				servers_[i].locations.push_back(tmp_location);
 				tmp_location.location_map.clear();
 				tmp_location.location_path.clear();
 			}
@@ -123,9 +124,16 @@ void ParsConf::fill_server_element()
 				std::string key = mylist.front();
 				duplocation.push_back(mylist.front());
 				mylist.pop_front();
+				if(_index == 1)
+				{
+					int autoi = atoi((mylist.front()).c_str()) ;
+					if(autoi != 1 && autoi != 0)
+						throw std::out_of_range("check auto index");
+				}
 				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(key, mylist));
 			}
 		}
+		split_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
 		if(closed != count_location)
@@ -134,11 +142,43 @@ void ParsConf::fill_server_element()
 			exit (0);
 		}
 	}
+	check_host();
+}
+
+void ParsConf::check_host()
+{
+	std::string ip[2];
+	int r = 0;
+	servers.push_back(servers_[0]); //  8080
+	for(unsigned int i = 1; i < servers_.size(); i++)
+	{
+		for(int j = 0; j < servers.size();j++)
+		{	 // 8080										//808
+			if(servers[j].server_map["host"].front() ==  servers_[i].server_map["host"].front()
+			&& servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
+			{
+				std::cout << "listen :"<< j << " | " << i <<" i: " <<servers[j].server_map["listen"].front()<< " |||| " <<servers_[i].server_map["listen"].front() <<std::endl;
+				r++;
+			}
+		}
+		if(r == 0)
+			servers.push_back(servers_[i]);
+		// std::cout <<"host :: : : :: : : : " <<servers[i].server_map["host"].front()<< std::endl;
+	}
+	std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
+	// std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
+std::cout << "********************************"<< std::endl;
+	for(int i = 0; i < servers.size(); i++)
+	{
+		std::cout << servers[i].server_map["listen"].front() << std::endl;
+		std::cout << servers[i].server_map["host"].front() << std::endl;
+	}
+	servers_.clear();
 }
 void ParsConf::split_host()
 {
-			std::string s;
-			size_t _find = 0;
+	std::string s;
+	size_t _find = 0;
 	for(int i = 0; i < servers.size();i++)
 	{
 		std::string str = servers[i].server_map["host"].front();
@@ -153,8 +193,16 @@ void ParsConf::split_host()
 }
 void ParsConf::check_value(std::string &value)
 {
+	std::cout << " this is value "<< value<< std::endl; 
 	for(unsigned int i = 0; i < value.size(); i++)
 	{
+		if(value[i] == '.')
+		{
+			if(i == value.size())
+				throw std::out_of_range("there is dot at end of host");
+			else if(value[i + 1] == '.')
+				throw std::out_of_range("there is a series of dots in host");
+		}
 		if(!isdigit(value[i]) && value[i] != '.')
 		{
 			std::cout << "value format is incorrect" << std::endl;
@@ -193,7 +241,7 @@ void ParsConf::check_element(std::vector<std::string> &vec)
 	std::string arr[5] = {"host", "listen", "max_client_body_size", "server_name", "location"};
 	int i = -1;
 	while(++i < 5)
-	{
+	{		
 		if (std::find(vec.begin(), vec.end(), arr[i]) == vec.end()){
 			std::cout << "your element in your file not enough"<< std::endl;
 			exit (0);

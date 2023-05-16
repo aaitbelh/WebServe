@@ -6,9 +6,10 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 16:20:08 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:13:48 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "includes.hpp"
 
@@ -404,11 +405,24 @@ void        Request::setAllinfos(Client &client)
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
+// std::string generaterandname()
+// {
+//     std::string str;
+
+//     std::srand(std::time(0));  // Seed the random number generator
+
+//     for (int i = 0; i < 10; ++i) {
+//         char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
+//         string += c;
+//     }
+//     std::cout << << std:endl;
+//     return randomString;
+// }
 
 void Request::exec_cgi(Client &client)
 {
-    std::cout << "CGI CALLED " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
+    // std::stirng = generaterandname();
 	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
@@ -436,8 +450,8 @@ void Request::exec_cgi(Client &client)
             dup2(fd, 0);
             close(fd);    
         }
-		execve(arg[0], arg, env);
-        std::cout << "execve failure" <<std::endl;
+		if(execve(arg[0], arg, env) == -1)
+            std::cout << "execve failure" <<std::endl;
         exit(1);
 	}
     int status = 0;

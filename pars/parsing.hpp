@@ -60,6 +60,7 @@ class ParsConf
 	public :
 	int count_location;
 	std::vector <t_server> servers;
+	std::vector <t_server> servers_;
 	ParsConf():count_server(0), count_location(0){}
 	void countserver(char *av);
 	void fill_server();
@@ -75,5 +76,6 @@ class ParsConf
 	std::vector<t_location>::iterator getAll_locations(std::vector <t_server>::iterator it);
 	void exec_cgi();
 	void split_host();
+	void check_host();
 };
 #endif

@@ -6,9 +6,10 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 10:35:51 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:14:23 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "Socket.hpp"
 
@@ -39,7 +40,10 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    std::cout << " ai_addrlen "<< bind_address->ai_addrlen << std::endl;
+    std::cout << " ai_addr " << bind_address->ai_addr << std::endl;
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
+    std::cout << "bbbbbb"<< b << std::endl;
     if (b)
     {
         std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
