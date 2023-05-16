@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/13 10:34:03 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/14 15:38:38 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,6 @@ int Request::checkRequest_validation(Client& client)
     {   
         sendResponse(rvalue, client);
     }
-        
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -121,14 +120,9 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
         httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
-    std::map<std::string, std::string>::iterator it;
-    // for (it = HeaderInfos.begin(); it != HeaderInfos.end(); ++it) {
-    //     std::cout << it->first << ": " << it->second << std::endl;
-    // }
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
-        std::cout << "C ------>" << HeaderInfos["Content-Length"] << std::endl;
         openFile(types_rev[HeaderInfos["Content-Type"]]);
     }
 }
@@ -164,18 +158,13 @@ char    *Request::removeContentLinght(char *buffer, int *r)
         i++;
     if (!buffer[i])
     {
-        std::cout<<"11\n";
         chunkOfChuk.append(buffer);
         return NULL;
-        std::cout<<"22\n";
     }
     std::string tem(buffer, buffer + i);
-    std::cout<<"<<<<: "<<tem<<"\n...  "<<i<<std::endl;
-    std::cout<<"rrrr: "<<*r<<std::endl;
     i += 2;
     *r -= i;
     chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
-    std::cout<<">>>>: "<<chunkedSize<<std::endl;
     if (!chunkedSize)
     {
         throw exception();
@@ -193,16 +182,11 @@ void    Request::postRequestHandl()
     {
         MyFile.write(buffer, r);
         resevedBytes += r;
-        std::cout << resevedBytes << " && " << totalBytes << std::endl;
         if (resevedBytes >= totalBytes)
-        {
-            std::cout << "GOOOT HERE  " << std::endl;
             throw std::exception();
-        }
     }
     else
     {
-            std::cout << "resevedBytes <<  << totalBytes" << std::endl;
             std::string tem(chunkOfChuk + std::string(buffer, r));
             if (chunkOfChuk.size())
             {
@@ -228,13 +212,11 @@ void    Request::postRequestHandl()
                     return ;
                 MyFile.write(buffer, r);
                 chunkedSize -= r;
-                std::cout<<"..   >"<<chunkedSize<<std::endl;
                 chunkOfChuk.clear();
 				resevedBytes += r;
             }
         //catch(const int& i) {printf("ZXCVBNM<>LKJHGFDXCVBNM\n");exit(0);    }
     }
-    std::cout << resevedBytes << " && " << totalBytes << std::endl;
 }
 
 
@@ -275,13 +257,10 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
         for(std::vector<t_location>::iterator it = server.locations.begin(); it != server.locations.end(); ++it){
             if(it->location_path == tmp)
             {
-                std::cout<<"3sy1      \n";
-
                 return it; 
             }
             if(it->location_path == "/")
             {
-                std::cout<<"3sdddy1      \n";
                 tmp_it = it;
 
             }
@@ -298,9 +277,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	std::string path;
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
-    std::cout<<"351      \n";
         std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
-    std::cout<<"351      \n";
 
 		if(it != servers[i].locations.end())
 		{
@@ -354,7 +331,6 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	}
 	if(!isfounded)
     {
-        std::cout<<"hnaaaaa 342\n";
         int rvalue = 0;
         setInfos_header(client, client.server.error_page[404], &rvalue);
         if(rvalue)
@@ -388,40 +364,31 @@ void        Request::setAllinfos(Client &client)
 
 void Request::exec_cgi(Client &client)
 {
-    std::cout << "GOT TO THE CGI " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
-	int fd = open("resp", O_RDWR | O_CREAT, 0666);
+	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
     env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup("/Users/ael-hayy/Desktop/WebServe/f.php");
+    env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	env[6] = NULL;
+    std::cout << "wtf asa7bii " << MyFilename << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
-    arg[0] = strdup("php-cgi");
-	arg[1] = strdup("/Users/ael-hayy/Desktop/WebServe/f.php");
-	arg[2] = NULL;
-
-    int file = open("body", O_RDWR | O_CREAT | O_TRUNC);
+    arg[0] = strdup((*it).c_str());
+	arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
     char buffer[1024];
-    if(client.getHeaderInfos()["METHOD"] == "POST"){
-        while (!MyFile.eof()) {
-            MyFile.read(buffer, sizeof(buffer));
-            ssize_t bytesRead = MyFile.gcount();
-            write(file, buffer, bytesRead);
-        }
-    }
 	pid_t f = fork();
-	if(f == 0)
+
+    if(f == 0)
 	{
 		dup2(fd, 1);
 		close(fd);
         if(HeaderInfos["METHOD"] == "POST")
         {
-            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
             dup2(fd, 0);
             close(fd);    
         }
@@ -447,8 +414,23 @@ void Request::exec_cgi(Client &client)
         struct stat b;
         stat("resp", &b);
         std::stringstream s;
-        s << b.st_size;
+        client.contentLenghtCgi = 0;
+        std::ifstream tmpfile("resp");
+        std::string strbuf;
+        char charbuf[1024];
+        while(!tmpfile.eof())
+        {
+            std::cout << "I GOT HERE " << std::endl;
+            tmpfile.read(charbuf, 1024);
+            strbuf.append(charbuf, tmpfile.gcount());
+            if(strbuf.find("\r\n") != std::string::npos)
+            {
+                s << b.st_size - strbuf.find("\r\n\r\n") - 4;
+                break ;
+            }        
+        }
         header.append("Content-Length: " + s.str() + "\r\n");
     }
-    throw std::exception();
+    //! semd responss
+    //* drop client
 }
