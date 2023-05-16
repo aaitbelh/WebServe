@@ -1,3 +1,6 @@
 <?php
-    while(1);    
+    while(1)
+    {
+        echo "Hello World";
+    }
 ?>

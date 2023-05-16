@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 17:38:23 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/16 16:20:08 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,9 +102,10 @@ std::string GetquerySting(std::string &URI)
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
+    // std::cout << httpRequest << std::endl;
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
-    // HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
+    HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
@@ -295,19 +296,21 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
         if(std::equal(path.begin(), path.end(), URI_path.begin()))
         {
             std::string tmp;
-            std::string root_v;
-            for(size_t i = 0; i < URI_path.size(); ++i)
-                tmp = tmp + "/" + URI_path[i];
-            client.GetClientinfos().URI = tmp;
-            root_v = it->getElemetnBylocation("root").front();
+            for(size_t i = 0; i < path.size(); ++i)
+                tmp += "/" + URI_path[i];
+            std::vector<std::string> root = PathTovector(it->getElemetnBylocation("root").front());
+            std::string root_path;
+            for(size_t i = 0; i < root.size(); ++i)
+                root_path += "/" + root[i];
+            client.GetClientinfos().alias = root_path;
             for(size_t i = path.size(); i < URI_path.size(); ++i)
-                root_v = root_v + "/" + URI_path[i];
-            client.GetClientinfos().root = root_v;
+                client.GetClientinfos().alias += "/" + URI_path[i];
+            client.GetClientinfos().root = root_path;
             return (it);
         }
 
     }
-    return (it_tmp);
+    return (server.locations.begin());
 }
 
 void	matchTheLocation(Client& client, std::vector<t_server> servers)
@@ -321,7 +324,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
-			struct all_infos &tmpstruct = client.GetClientinfos();
+            struct all_infos &tmpstruct = client.GetClientinfos();
 			tmpstruct.server_name = servers[i].server_map["server_name"].front();
 			if(it->isExist("allow_methods"))
 			{
@@ -367,7 +370,6 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
-            std::cout << "GOT HERE  " << std::endl;
 			return ;
 		}	
 	}
@@ -405,6 +407,7 @@ void        Request::setAllinfos(Client &client)
 
 void Request::exec_cgi(Client &client)
 {
+    std::cout << "CGI CALLED " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
 	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];

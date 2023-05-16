@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 13:33:03 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 08:56:14 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ void Server::serverRun(t_server &server)
             i = j;
         }
      
-    std::cout<<"server 377   \n";
     }
 }
 Server::Server(std::string host, std::string port):socketListen(host.c_str(), port.c_str()), clientList()
