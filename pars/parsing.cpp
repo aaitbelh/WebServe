@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 16:59:41 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:21:18 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,7 +188,7 @@ ParsConf &ParsConf::operator=(const ParsConf &obj)
 	closed = obj.closed;
 	this->vec = obj.vec;
 	servers = obj.servers;
-	servers_ = obj.servers_;
+	// servers_ = obj.servers_;
 	return *this;
 }
 void ParsConf::check_value(std::string &value)

@@ -21,7 +21,7 @@ class Response
         Response(/* args */);
         ~Response();
         std::string&    getResponse();
-		void fillTheBody(Client &client);
+		void fillTheBody(Client &client); 
         void fillTheHeader(Client &client);
         std::map<std::string, std::string> types;
         std::string&    getHeader();

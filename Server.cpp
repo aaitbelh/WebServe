@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 17:09:15 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:29:35 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void Server::serverRun(t_server &server)
     if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
         throw std::exception();
     acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
+    signal(SIGPIPE, SIG_IGN);
     if (clientList.size())
     {
         std::list<Client>::iterator i = clientList.begin(), j;
@@ -61,32 +62,37 @@ Server::~Server()
 
 int main(int ac, char **av)
 {
-    if(ac == 2)
+    try
     {
-        ParsConf pars;
-        pars.countserver(av[1]);
-        pars.fill_server();
-        size_t  sx = 0;
-        Server  servers[pars.servers.size()];
-        for (size_t i = 0; i < pars.servers.size(); i++)
+        if(ac == 2)
         {
-            std::cout<<pars.servers[i].server_map["host"].front()<<" -===- "<<pars.servers[i].server_map["listen"].front()<<std::endl;
-            sleep(1);
-            servers[i](pars.servers[i].server_map["host"].front(),\
-                    pars.servers[i].server_map["listen"].front());
-            servers[i].pars = pars;
+            ParsConf pars;
+            pars.countserver(av[1]);
+            pars.fill_server();
+            size_t  sx = 0;
+            Server  servers[pars.servers.size()];
+            for (size_t i = 0; i < pars.servers.size(); i++)
+            {
+                servers[i](pars.servers[i].server_map["host"].front(),\
+                        pars.servers[i].server_map["listen"].front());
+                servers[i].pars = pars;
+            }
+            
+            while(1)
+            {
+                servers[sx % pars.servers.size()].serverRun(pars.servers[sx % pars.servers.size()]);
+                sx++;
+                // Server s(pars.servers[sx % pars.servers.size()].server_map["host"].front(),\
+                s.pars = pars;
+                //          pars.servers[sx % pars.servers.size()].server_map["listen"].front());
+                // s.serverRun(pars.servers[sx % pars.servers.size()]);
+            }
+            return (0);
         }
-        
-        while(1)
-        {
-            servers[sx % pars.servers.size()].serverRun(pars.servers[sx % pars.servers.size()]);
-            sx++;
-            // Server s(pars.servers[sx % pars.servers.size()].server_map["host"].front(),\
-		    s.pars = pars;
-            //          pars.servers[sx % pars.servers.size()].server_map["listen"].front());
-            // s.serverRun(pars.servers[sx % pars.servers.size()]);
-        }
-        return (0);
+        std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
     }
-    std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
+    catch(...)
+    {
+        std::cerr<<"server taaa7 sir 7tal ghda"<<std::endl;
+    }
 }

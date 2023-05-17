@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 17:07:40 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:55:45 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,8 +206,6 @@ void    Request::postRequestHandl()
             }
             if (r > 0)
             {
-                if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -407,15 +405,14 @@ void        Request::setAllinfos(Client &client)
 }
 std::string generaterandname()
 {
+    std::stringstream ss;
+
+    srand(time(0));
+    ss << rand();
+    ss << ".resp";
     std::string str;
-
-    std::srand(std::time(0));  // Seed the random number generator
-
-    for (int i = 0; i < 10; ++i) {
-        char c = 'a' + std::rand() % 26;
-        str += c;
-    }
-    return str;
+    ss >> str;
+    return (str);
 }
 
 void Request::exec_cgi(Client &client)
@@ -437,12 +434,12 @@ void Request::exec_cgi(Client &client)
     if(HeaderInfos["METHOD"] == "POST")
     {
         env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
-	    arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
+	    arg[1] = strdup((MyFilename).c_str());
     }
     else
     {
         env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
-	    arg[1] = strdup(("PATH_INFO="+ client.file_path).c_str());
+	    arg[1] = strdup((client.file_path).c_str());
     }
 	env[6] = NULL;
 	arg[2] = NULL;
