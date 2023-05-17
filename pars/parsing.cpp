@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 09:54:39 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 16:38:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ void ParsConf::fill_server()
 	t_server tmp_server;
 	for(unsigned int j = 0; j < vec.size() ; j++)
 	{
-		std::cout << vec[j] << std::endl;
 		if(vec[j] == "};")
 		{
 			servers_.push_back(tmp_server);
@@ -182,15 +181,15 @@ void ParsConf::split_host()
 		}
 	}
 }
-// ParsConf &ParsConf::operator=(const ParsConf &obj)
-// {
-// 	count_server = obj.count_server;
-// 	closed = obj.closed;
-// 	this->vec = obj.vec;
-// 	servers = obj.servers;
-// 	servers_ = obj.servers_;
-// 	return *this;
-// }
+ParsConf &ParsConf::operator=(const ParsConf &obj)
+{
+	count_server = obj.count_server;
+	closed = obj.closed;
+	this->vec = obj.vec;
+	servers = obj.servers;
+	servers_ = obj.servers_;
+	return *this;
+}
 void ParsConf::check_value(std::string &value)
 {
 	for(unsigned int i = 0; i < value.size(); i++)

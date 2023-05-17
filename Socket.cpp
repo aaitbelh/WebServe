@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 13:05:34 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 13:36:01 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    std::cout << " ai_addrlen "<< bind_address->ai_addrlen << std::endl;
-    std::cout << " ai_addr " << bind_address->ai_addr << std::endl;
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
-    std::cout << "bbbbbb"<< b << std::endl;
     if (b)
     {
         std::cerr<<"error in bind(): "<< strerror(b) << std::endl;

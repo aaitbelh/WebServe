@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 17:09:31 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 18:16:17 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Response.hpp"
 
 void Response::fillTheBody(Client &client)
-{   
+{    
     std::string body;
     char buf[1024];
     client.file.read(buf, 1024);
@@ -109,7 +109,6 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     std::string header;
     Response tmp;
     std::map<std::string, std::string> &request = client.getRequest().getHeaderInfos();
-    std::cout << "filename " << filename << std::endl;
     struct stat buffer;
     std::stringstream s;
     *Rvalue = 0;
@@ -177,13 +176,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
         s <<  buffer.st_size + calcluateLen(client);    
     else
         s << buffer.st_size;
-    if(tmp.getFileType(filename) == "text/php" || tmp.getFileType(filename) == "text/perl")
-    {
-        client.file_path = filename;
-        client.getRequest().exec_cgi(client);
-        header.append(client.getRes().getHeader());
-    }
-    else
+    if(!client.is_cgi)
     {
         header.append("Content-Length: " + s.str() + "\r\n");
         header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
@@ -197,10 +190,18 @@ void Response::fillTheHeader(Client &client)
     std::string filename = find_filename(client);
     if(filename == "")
         filename = client.server.error_page[404];
-    int Rvalue = 0;
-    this->header = setInfos_header(client, filename, &Rvalue);
-    if(Rvalue)
-        sendResponse(Rvalue, client);
+    int Rvalue;
+    if(this->getFileType(filename) == "text/php" || this->getFileType(filename) == "text/perl")
+    {
+        client.file_path = filename;
+        client.getRequest().exec_cgi(client);
+    }
+    else
+    {
+        this->header = setInfos_header(client, filename, &Rvalue);
+        if(Rvalue)
+            sendResponse(Rvalue, client);
+    }
 }
 
 void    changeTheHeaderby(Client &client, const std::string &element)

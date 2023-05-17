@@ -71,6 +71,7 @@ class ParsConf
 	std::vector <t_server> servers;
 	std::vector <t_server> servers_;
 	ParsConf():count_server(0), count_location(0), closed_brack(0){}
+	ParsConf &operator=(const ParsConf &obj);
 	void countserver(char *av);
 	void fill_server();
 	void fill_server_element();

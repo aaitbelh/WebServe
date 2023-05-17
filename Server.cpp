@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/17 13:01:20 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/17 13:03:00 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 13:53:19 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ int main(int ac, char **av)
 {
     if(ac == 2)
     {
+        signal(SIGPIPE, SIG_IGN);
         ParsConf pars;
         pars.countserver(av[1]);
         pars.fill_server();

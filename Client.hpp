@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 13:16:24 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 18:01:51 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,8 +71,10 @@ class Client
 	struct all_infos& GetClientinfos();
 	std::string dir_body;
 	std::string dirname;
-	int			contentLenghtCgi;
 	std::string file_path;
+	bool is_cgi;
+	bool cgi_finished;
+	std::string cgi_filename;
 private:
     SOCKADDRE   address;
     SOCKET      sockett;
