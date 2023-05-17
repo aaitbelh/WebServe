@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 17:14:05 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 09:51:16 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void Server::serverRun(t_server &server)
             acceptREADsocket(&readSet,&writeSet, *i, clientList, i);
             i = j;
         }
-    }
+    // }
 }
 Server::Server(std::string host, std::string port):socketListen(host.c_str(), port.c_str()), clientList()
 {
