@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 18:26:19 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 10:36:52 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "includes.hpp"
 
@@ -68,7 +69,7 @@ int Request::checkRequest_validation(Client& client)
     if(HeaderInfos["METHOD"] == "POST" && !rvalue)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
-            setInfos_header(client, client.server.error_page[400], &rvalue);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
             if(rvalue)
                 rvalue = 400;
             changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
@@ -77,15 +78,13 @@ int Request::checkRequest_validation(Client& client)
             sendResponse(501, client);
         }
         else if(HeaderInfos["URI"].length() > 2048){
-            setInfos_header(client, client.server.error_page[414], &rvalue);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
             if(rvalue)
                 rvalue = 414;
         }
     }
     if(rvalue)
-    {   
         sendResponse(rvalue, client);
-    }
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -102,9 +101,10 @@ std::string GetquerySting(std::string &URI)
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
+    // std::cout << httpRequest << std::endl;
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
-    // HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
+    HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
     pos = httpRequest.find("\r\n") + 2;
@@ -295,19 +295,21 @@ std::vector<t_location>::iterator getTheLocation(Client& client, t_server &serve
         if(std::equal(path.begin(), path.end(), URI_path.begin()))
         {
             std::string tmp;
-            std::string root_v;
-            for(size_t i = 0; i < URI_path.size(); ++i)
-                tmp = tmp + "/" + URI_path[i];
-            client.GetClientinfos().URI = tmp;
-            root_v = it->getElemetnBylocation("root").front();
+            for(size_t i = 0; i < path.size(); ++i)
+                tmp += "/" + URI_path[i];
+            std::vector<std::string> root = PathTovector(it->getElemetnBylocation("root").front());
+            std::string root_path;
+            for(size_t i = 0; i < root.size(); ++i)
+                root_path += "/" + root[i];
+            client.GetClientinfos().alias = root_path;
             for(size_t i = path.size(); i < URI_path.size(); ++i)
-                root_v = root_v + "/" + URI_path[i];
-            client.GetClientinfos().root = root_v;
+                client.GetClientinfos().alias += "/" + URI_path[i];
+            client.GetClientinfos().root = root_path;
             return (it);
         }
 
     }
-    return (it_tmp);
+    return (server.locations.begin());
 }
 
 void	matchTheLocation(Client& client, std::vector<t_server> servers)
@@ -321,7 +323,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
-			struct all_infos &tmpstruct = client.GetClientinfos();
+            struct all_infos &tmpstruct = client.GetClientinfos();
 			tmpstruct.server_name = servers[i].server_map["server_name"].front();
 			if(it->isExist("allow_methods"))
 			{
@@ -367,14 +369,15 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
-            std::cout << "GOT HERE  " << std::endl;
 			return ;
 		}	
 	}
 	if(!isfounded)
     {
         int rvalue = 0;
-        setInfos_header(client, client.server.error_page[404], &rvalue);
+        client.GetClientinfos().server_name = servers[0].server_map["server_name"].front();
+        client.getRes().getHeader() =  setInfos_header(client, client.server.error_page[404], &rvalue);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 404 Not Found");
         if(rvalue)
             sendResponse(404, client);
     }
@@ -402,11 +405,24 @@ void        Request::setAllinfos(Client &client)
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
+// std::string generaterandname()
+// {
+//     std::string str;
+
+//     std::srand(std::time(0));  // Seed the random number generator
+
+//     for (int i = 0; i < 10; ++i) {
+//         char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
+//         string += c;
+//     }
+//     std::cout << << std:endl;
+//     return randomString;
+// }
 
 void Request::exec_cgi(Client &client)
 {
-    std::cout << "server " << std::endl;
 	char **env = (char **)malloc(sizeof(char **) * 5);
+    // std::stirng = generaterandname();
 	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 

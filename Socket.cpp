@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 18:26:31 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/16 17:14:23 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "Socket.hpp"
 
@@ -34,37 +35,39 @@ Socket::Socket()
 
 void    Socket::creatSocket(std::string& host, std::string& service)
 {
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-	struct addrinfo *bind_address;
-	getaddrinfo(host.c_str(), service.c_str(), &hints, &bind_address);
-	socketfd = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
-	if (socketfd < 0)
-	{
-		std::cerr<< strerror(socketfd)<<std::endl;
-		return ;
-	}
-	int yes = 1;
-	setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-	int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
-	std::cout<<"--------------bb:: "<<b<<"   ----ip: "<<service.c_str()<<"  ---host: "<<host.c_str()<<std::endl;
-	if (b)
-	{
-		std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
-		socketfd = -1;
-		return ;
-	}
-	freeaddrinfo(bind_address);
-	b = listen(socketfd, SOMAXCONN);
-	if (b < 0)
-	{
-		std::cerr<<"error in listn(): "<< strerror(b)<<std::endl;
-		socketfd = -1;
-		return ;
-	}
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    struct addrinfo *bind_address;
+    getaddrinfo(host.c_str(), service.c_str(), &hints, &bind_address);
+    socketfd = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
+    if (socketfd < 0)
+    {
+        std::cerr<< strerror(socketfd)<<std::endl;
+        return ;
+    }
+    int yes = 1;
+    setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    std::cout << " ai_addrlen "<< bind_address->ai_addrlen << std::endl;
+    std::cout << " ai_addr " << bind_address->ai_addr << std::endl;
+    int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
+    std::cout << "bbbbbb"<< b << std::endl;
+    if (b)
+    {
+        std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
+        socketfd = -1;
+        return ;
+    }
+    freeaddrinfo(bind_address);
+    b = listen(socketfd, SOMAXCONN);
+    if (b < 0)
+    {
+        std::cerr<<"error in listn(): "<< strerror(b)<<std::endl;
+        socketfd = -1;
+        return ;
+    }
 }
 
 SOCKET  Socket::operator()()

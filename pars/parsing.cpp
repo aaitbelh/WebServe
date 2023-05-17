@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/14 20:21:13 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 09:54:39 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void ParsConf::fill_server()
 	t_server tmp_server;
 	for(unsigned int j = 0; j < vec.size() ; j++)
 	{
+		std::cout << vec[j] << std::endl;
 		if(vec[j] == "};")
 		{
 			servers_.push_back(tmp_server);
@@ -124,15 +125,21 @@ void ParsConf::fill_server_element()
 				std::string key = mylist.front();
 				duplocation.push_back(mylist.front());
 				mylist.pop_front();
+				if(_index == 1)
+				{
+					int autoi = atoi((mylist.front()).c_str()) ;
+					if(autoi != 1 && autoi != 0)
+						throw std::out_of_range("check auto index");
+				}
 				tmp_location.location_map.insert(std::pair<std::string, std::list<string> >(key, mylist));
 			}
 		}
 		split_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
-		if(closed != count_location)
+		if(closed != count_location || closed_brack != count_server)
 		{
-			std::cout << "locations : syntax error" << std::endl;
+			std::cout << "locations or server: syntax error" << std::endl;
 			exit (0);
 		}
 	}
@@ -147,25 +154,15 @@ void ParsConf::check_host()
 	for(unsigned int i = 1; i < servers_.size(); i++)
 	{
 		for(int j = 0; j < servers.size();j++)
-		{	 // 8080										//808
+		{
 			if(servers[j].server_map["host"].front() ==  servers_[i].server_map["host"].front()
 			&& servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
 			{
-				std::cout << "listen :"<< j << " | " << i <<" i: " <<servers[j].server_map["listen"].front()<< " |||| " <<servers_[i].server_map["listen"].front() <<std::endl;
 				r++;
 			}
 		}
 		if(r == 0)
 			servers.push_back(servers_[i]);
-		// std::cout <<"host :: : : :: : : : " <<servers[i].server_map["host"].front()<< std::endl;
-	}
-	std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
-	// std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
-std::cout << "********************************"<< std::endl;
-	for(int i = 0; i < servers.size(); i++)
-	{
-		std::cout << servers[i].server_map["listen"].front() << std::endl;
-		std::cout << servers[i].server_map["host"].front() << std::endl;
 	}
 	servers_.clear();
 }
@@ -185,19 +182,26 @@ void ParsConf::split_host()
 		}
 	}
 }
-ParsConf &ParsConf::operator=(const ParsConf &obj)
-{
-	count_server = obj.count_server;
-	closed = obj.closed;
-	this->vec = obj.vec;
-	servers = obj.servers;
-	servers_ = obj.servers_;
-	return *this;
-}
+// ParsConf &ParsConf::operator=(const ParsConf &obj)
+// {
+// 	count_server = obj.count_server;
+// 	closed = obj.closed;
+// 	this->vec = obj.vec;
+// 	servers = obj.servers;
+// 	servers_ = obj.servers_;
+// 	return *this;
+// }
 void ParsConf::check_value(std::string &value)
 {
 	for(unsigned int i = 0; i < value.size(); i++)
 	{
+		if(value[i] == '.')
+		{
+			if(i == value.size())
+				throw std::out_of_range("there is dot at end of host");
+			else if(value[i + 1] == '.')
+				throw std::out_of_range("there is a series of dots in host");
+		}
 		if(!isdigit(value[i]) && value[i] != '.')
 		{
 			std::cout << "value format is incorrect" << std::endl;
@@ -236,7 +240,7 @@ void ParsConf::check_element(std::vector<std::string> &vec)
 	std::string arr[5] = {"host", "listen", "max_client_body_size", "server_name", "location"};
 	int i = -1;
 	while(++i < 5)
-	{
+	{		
 		if (std::find(vec.begin(), vec.end(), arr[i]) == vec.end()){
 			std::cout << "your element in your file not enough"<< std::endl;
 			exit (0);
@@ -297,13 +301,16 @@ void ParsConf::brackets_errors()
 	{
 		if(vec[i] == "{" && !open)
 			open = 1;
-		else if(vec[i] == "{" && open)
+		else if((vec[i] == "{" && open))
 		{
 			std::cout << "there is problem in brackets "<< std::endl;
 			exit (0);
 		}
 		if(vec[i] == "};" && open)
+		{
 			open = 0;
+			closed_brack++;
+		}
 		else if(vec[i] == "};" && !open)
 		{
 			std::cout <<"there is problem in brackets"<< std::endl;
