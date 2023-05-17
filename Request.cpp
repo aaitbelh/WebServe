@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 13:18:31 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:07:40 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -447,6 +447,7 @@ void Request::exec_cgi(Client &client)
 	env[6] = NULL;
 	arg[2] = NULL;
     char buffer[1024];
+    std::cout << arg[1] << std::endl;
 	pid_t f = fork();
 
     if(f == 0)
@@ -463,26 +464,28 @@ void Request::exec_cgi(Client &client)
             std::cout << "execve failure" <<std::endl;
         exit(1);
 	}
+    // sleep(1);
+    wait(NULL);
     int status = 0;
-	while(waitpid(f, &status, WNOHANG))
-    {
-        if(WIFEXITED(status))
-        {
-            break;
-        }
-    }
-    if(HeaderInfos["METHOD"] == "GET")
-    {
+	// while(waitpid(f, &status, WNOHANG))
+    // {
+    //     if(WIFEXITED(status))
+    //     {
+    //         break;
+    //     }
+    // }
+    // if(HeaderInfos["METHOD"] == "GET")
+    // {
         close(fd);
         client.file.clear();
         client.file.close();
-        client.file.open("resp");
+        client.file.open(str.c_str());
         std::string &header = client.getRes().getHeader();
         struct stat b;
-        stat("resp", &b);
+        stat(str.c_str(), &b);
         std::stringstream s;
         client.contentLenghtCgi = 0;
-        std::ifstream tmpfile("resp");
+        std::ifstream tmpfile(str);
         std::string strbuf;
         char charbuf[1024];
         while(!tmpfile.eof())
@@ -496,7 +499,8 @@ void Request::exec_cgi(Client &client)
             }        
         }
         header.append("Content-Length: " + s.str() + "\r\n");
-    }
+        // exit (0);
+    // }
     //! semd responss
     //* drop client
 }

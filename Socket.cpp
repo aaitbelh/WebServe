@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 17:14:23 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 14:06:59 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 		std::cerr<<"waitingForClients listn"<<strerror(errno)<<std::endl;
 		return (-1);
 	}
-	std::cout<<"lalal\n";
 	return (0);
 }
 void    setSocketForReadAndWrite(fd_set *readSet, fd_set *writeSet, SOCKET socketListen)
@@ -109,7 +108,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 {
 	if (FD_ISSET(socketListen, readSet))
 	{
-		std::cout<<"#WRTIHAAAA\n";
 		Client  client;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
@@ -120,7 +118,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 		}
 		clientList.push_front(client);
 	}
-	std::cout<<"#WRTIHAAAA\n";
 	return (0);
 
 }
