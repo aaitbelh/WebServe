@@ -206,8 +206,6 @@ void    Request::postRequestHandl()
             }
             if (r > 0)
             {
-                if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);

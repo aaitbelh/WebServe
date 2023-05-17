@@ -46,7 +46,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     if (socketfd < 0)
     {
         std::cerr<< strerror(socketfd)<<std::endl;
-        return ;
+        throw std::exception() ;
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
@@ -58,7 +58,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     {
         std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
         socketfd = -1;
-        return ;
+        throw std::exception() ;
     }
     freeaddrinfo(bind_address);
     b = listen(socketfd, SOMAXCONN);
@@ -66,7 +66,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     {
         std::cerr<<"error in listn(): "<< strerror(b)<<std::endl;
         socketfd = -1;
-        return ;
+        throw std::exception() ;
     }
 }
 
@@ -94,7 +94,7 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 		std::cerr<<"waitingForClients listn"<<strerror(errno)<<std::endl;
 		return (-1);
 	}
-	std::cout<<"lalal\n";
+	// std::cout<<"lalal\n";
 	return (0);
 }
 void    setSocketForReadAndWrite(fd_set *readSet, fd_set *writeSet, SOCKET socketListen)
@@ -109,7 +109,7 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 {
 	if (FD_ISSET(socketListen, readSet))
 	{
-		std::cout<<"#WRTIHAAAA\n";
+		// std::cout<<"#WRTIHAAAA\n";
 		Client  client;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
@@ -120,7 +120,7 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 		}
 		clientList.push_front(client);
 	}
-	std::cout<<"#WRTIHAAAA\n";
+	// std::cout<<"#WRTIHAAAA\n";
 	return (0);
 
 }
@@ -153,7 +153,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             if(r <= 0)
             {
                 close(client.getSocket());
-				std::cout<<"153   ; ; ; ;======================================= \n";
                 clientList.erase(i);
                 return 1;
             }
@@ -206,7 +205,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     catch (std::exception)
     {
         close(client.getSocket());
-		std::cout<<"hnaanananana 3awawawaddd \n";
          clientList.erase(i);
     }
     return 1;
