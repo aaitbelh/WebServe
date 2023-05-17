@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 09:54:39 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 13:01:39 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,15 +182,15 @@ void ParsConf::split_host()
 		}
 	}
 }
-// ParsConf &ParsConf::operator=(const ParsConf &obj)
-// {
-// 	count_server = obj.count_server;
-// 	closed = obj.closed;
-// 	this->vec = obj.vec;
-// 	servers = obj.servers;
-// 	servers_ = obj.servers_;
-// 	return *this;
-// }
+ParsConf &ParsConf::operator=(const ParsConf &obj)
+{
+	count_server = obj.count_server;
+	closed = obj.closed;
+	this->vec = obj.vec;
+	servers = obj.servers;
+	servers_ = obj.servers_;
+	return *this;
+}
 void ParsConf::check_value(std::string &value)
 {
 	for(unsigned int i = 0; i < value.size(); i++)

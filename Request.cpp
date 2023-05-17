@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 10:36:52 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 13:18:31 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -405,38 +405,47 @@ void        Request::setAllinfos(Client &client)
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
-// std::string generaterandname()
-// {
-//     std::string str;
+std::string generaterandname()
+{
+    std::string str;
 
-//     std::srand(std::time(0));  // Seed the random number generator
+    std::srand(std::time(0));  // Seed the random number generator
 
-//     for (int i = 0; i < 10; ++i) {
-//         char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
-//         string += c;
-//     }
-//     std::cout << << std:endl;
-//     return randomString;
-// }
+    for (int i = 0; i < 10; ++i) {
+        char c = 'a' + std::rand() % 26;
+        str += c;
+    }
+    return str;
+}
 
 void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
-    // std::stirng = generaterandname();
-	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
+    std::string str = generaterandname();
+	int fd = open(str.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
     env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
     env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
     env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
-	env[6] = NULL;
     std::cout << "wtf asa7bii " << MyFilename << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
     arg[0] = strdup((*it).c_str());
-	arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
+    std::cout << *it << std::endl;
+    if(HeaderInfos["METHOD"] == "POST")
+    {
+        env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
+	    arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
+    }
+    else
+    {
+        env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
+	    arg[1] = strdup(("PATH_INFO="+ client.file_path).c_str());
+    }
+	env[6] = NULL;
+	arg[2] = NULL;
     char buffer[1024];
 	pid_t f = fork();
 
