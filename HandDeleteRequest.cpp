@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/16 08:51:36 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 10:34:42 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void 			handlDeleteRequest(Client& client)
             {
                 if(!client.server.error_page.count(404))
                     sendResponse(404, client);
-                setInfos_header(client, client.server.error_page[404], &Rvalue);   
+                client.getRes().getHeader() = setInfos_header(client, client.server.error_page[404], &Rvalue);   
                 changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 404 Not Found");
                 if(Rvalue)
                     sendResponse(404, client);
@@ -63,7 +63,7 @@ void 			handlDeleteRequest(Client& client)
     {
         if(!client.server.error_page.count(404))
             sendResponse(404, client);
-        setInfos_header(client, client.server.error_page[404], &Rvalue);
+        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[404], &Rvalue);
         if(Rvalue)
             sendResponse(404, client);
     }

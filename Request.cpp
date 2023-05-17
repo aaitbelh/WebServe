@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 17:13:48 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 10:36:52 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int Request::checkRequest_validation(Client& client)
     if(HeaderInfos["METHOD"] == "POST" && !rvalue)
     {
         if(!HeaderInfos.count("Content-Length") && !HeaderInfos.count("Transfer-Encoding")){
-            setInfos_header(client, client.server.error_page[400], &rvalue);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
             if(rvalue)
                 rvalue = 400;
             changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
@@ -78,15 +78,13 @@ int Request::checkRequest_validation(Client& client)
             sendResponse(501, client);
         }
         else if(HeaderInfos["URI"].length() > 2048){
-            setInfos_header(client, client.server.error_page[414], &rvalue);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
             if(rvalue)
                 rvalue = 414;
         }
     }
     if(rvalue)
-    {   
         sendResponse(rvalue, client);
-    }
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -377,7 +375,9 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	if(!isfounded)
     {
         int rvalue = 0;
-        setInfos_header(client, client.server.error_page[404], &rvalue);
+        client.GetClientinfos().server_name = servers[0].server_map["server_name"].front();
+        client.getRes().getHeader() =  setInfos_header(client, client.server.error_page[404], &rvalue);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 404 Not Found");
         if(rvalue)
             sendResponse(404, client);
     }
