@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/16 17:09:25 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/17 09:54:39 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void ParsConf::fill_server()
 	t_server tmp_server;
 	for(unsigned int j = 0; j < vec.size() ; j++)
 	{
+		std::cout << vec[j] << std::endl;
 		if(vec[j] == "};")
 		{
 			servers_.push_back(tmp_server);
@@ -136,9 +137,9 @@ void ParsConf::fill_server_element()
 		split_host();
 		check_duplcates(duplicate, 0);
 		duplicate.clear();
-		if(closed != count_location)
+		if(closed != count_location || closed_brack != count_server)
 		{
-			std::cout << "locations : syntax error" << std::endl;
+			std::cout << "locations or server: syntax error" << std::endl;
 			exit (0);
 		}
 	}
@@ -153,25 +154,15 @@ void ParsConf::check_host()
 	for(unsigned int i = 1; i < servers_.size(); i++)
 	{
 		for(int j = 0; j < servers.size();j++)
-		{	 // 8080										//808
+		{
 			if(servers[j].server_map["host"].front() ==  servers_[i].server_map["host"].front()
 			&& servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
 			{
-				std::cout << "listen :"<< j << " | " << i <<" i: " <<servers[j].server_map["listen"].front()<< " |||| " <<servers_[i].server_map["listen"].front() <<std::endl;
 				r++;
 			}
 		}
 		if(r == 0)
 			servers.push_back(servers_[i]);
-		// std::cout <<"host :: : : :: : : : " <<servers[i].server_map["host"].front()<< std::endl;
-	}
-	std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
-	// std::cout <<"after :: : : :: : : : " <<servers.size()<< std::endl;
-std::cout << "********************************"<< std::endl;
-	for(int i = 0; i < servers.size(); i++)
-	{
-		std::cout << servers[i].server_map["listen"].front() << std::endl;
-		std::cout << servers[i].server_map["host"].front() << std::endl;
 	}
 	servers_.clear();
 }
@@ -193,7 +184,6 @@ void ParsConf::split_host()
 }
 void ParsConf::check_value(std::string &value)
 {
-	std::cout << " this is value "<< value<< std::endl; 
 	for(unsigned int i = 0; i < value.size(); i++)
 	{
 		if(value[i] == '.')
@@ -302,13 +292,16 @@ void ParsConf::brackets_errors()
 	{
 		if(vec[i] == "{" && !open)
 			open = 1;
-		else if(vec[i] == "{" && open)
+		else if((vec[i] == "{" && open))
 		{
 			std::cout << "there is problem in brackets "<< std::endl;
 			exit (0);
 		}
 		if(vec[i] == "};" && open)
+		{
 			open = 0;
+			closed_brack++;
+		}
 		else if(vec[i] == "};" && !open)
 		{
 			std::cout <<"there is problem in brackets"<< std::endl;

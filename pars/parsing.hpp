@@ -57,11 +57,12 @@ class ParsConf
 		int count_server;
 		int closed;
 		std::vector <std::string> vec;
+		int closed_brack;
 	public :
 	int count_location;
 	std::vector <t_server> servers;
 	std::vector <t_server> servers_;
-	ParsConf():count_server(0), count_location(0){}
+	ParsConf():count_server(0), count_location(0), closed_brack(0){}
 	void countserver(char *av);
 	void fill_server();
 	void fill_server_element();
