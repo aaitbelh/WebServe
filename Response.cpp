@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/14 10:43:27 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/14 17:38:39 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,19 +73,16 @@ std::string find_filename(Client &client)
 {
 	std::string filename;
 	std::ifstream file;
-	if(client.getHeaderInfos()["URI"] == client.GetClientinfos().location_div.location_path)
+	for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
 	{
-		for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
-		{
-			std::string path =  client.GetClientinfos().root + client.GetClientinfos().location_div.location_path + "/"+ *it;
-			file.open(path);
-			if(file.is_open() && file.good())
-            {
-				return path;
-            }
-		}
+		std::string path =  client.GetClientinfos().root + "/" + *it;
+		file.open(path);
+		if(file.is_open() && file.good())
+        {
+			return path;
+        }
 	}
-	return client.GetClientinfos().root + client.getHeaderInfos()["URI"];
+	return "";
 }
 void Response::checkRediraction(Client &client)
 {
@@ -167,9 +164,9 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     }
     stat(filename.c_str(), &buffer);
     header.append("Connection: close\r\n");
-    // header.append("Server: ");
-	// header.append(client.GetClientinfos().server_name);
-    // header.append("\r\n");
+    header.append("Server: ");
+	header.append(client.GetClientinfos().server_name);
+    header.append("\r\n");
     if(client.is_dir)
         s <<  buffer.st_size + calcluateLen(client);    
     else
@@ -186,16 +183,15 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
         header.append("Content-Type: " + tmp.getFileType(filename) + "\r\n");
         header.append("\r\n");
     }
-    // std::cout << "--------------------------------------------" << std::endl;
-    // std::cout << header << std::endl;
-    // std::cout << "--------------------------------------------" << std::endl;
     return header;
 }
 void Response::fillTheHeader(Client &client)
 {
 	checkRediraction(client);
     std::string filename = find_filename(client);
-    int Rvalue;
+    if(filename == "")
+        filename = client.server.error_page[404];
+    int Rvalue = 0;
     this->header = setInfos_header(client, filename, &Rvalue);
     if(Rvalue)
         sendResponse(Rvalue, client);

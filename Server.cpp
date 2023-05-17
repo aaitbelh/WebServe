@@ -11,6 +11,11 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+Server& Server::operator=(Server& srv)
+{
+    return(*this);
+}
 void Server::serverRun(t_server &server)
 {
     fd_set  readSet;
@@ -18,17 +23,19 @@ void Server::serverRun(t_server &server)
     setSocketForReadAndWrite(&readSet, &writeSet, socketListen());
     if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
         throw std::exception();
-    std::cout<<"hello-----------------------\n\n \n";
     acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
-    clientList.begin()->parsingInfos = this->pars;
-    std::list<Client>::iterator i = clientList.begin(), j;
-    i->server = server;
-    j = i;
-    while (i != clientList.end())
+    if (clientList.size())
     {
-        ++j;
-        acceptREADsocket(&readSet,&writeSet, *i, clientList, i);
-        i = j;
+        std::list<Client>::iterator i = clientList.begin(), j;
+        clientList.begin()->parsingInfos = this->pars;
+        i->server = server;
+        j = i;
+        while (i != clientList.end())
+        {
+            ++j;
+            acceptREADsocket(&readSet,&writeSet, *i, clientList, i);
+            i = j;
+        }
     }
 }
 Server::Server(std::string host, std::string port):socketListen(host.c_str(), port.c_str()), clientList()
@@ -36,7 +43,15 @@ Server::Server(std::string host, std::string port):socketListen(host.c_str(), po
     if (socketListen() < 0)
         throw std::exception();
 }
-
+void    Server::operator()(std::string host, std::string port)
+{
+    socketListen(host.c_str(), port.c_str());
+    if (socketListen() < 0)
+        throw std::exception();
+}
+Server::Server()
+{
+}
 Server::~Server()
 {
 }
@@ -48,15 +63,25 @@ int main(int ac, char **av)
         ParsConf pars;
         pars.countserver(av[1]);
         pars.fill_server();
-        size_t  server_index = 0;
+        size_t  sx = 0;
+        Server  servers[pars.servers.size()];
+        for (size_t i = 0; i < pars.servers.size(); i++)
+        {
+            std::cout<<pars.servers[i].server_map["host"].front()<<" -===- "<<pars.servers[i].server_map["listen"].front()<<std::endl;
+            sleep(1);
+            servers[i](pars.servers[i].server_map["host"].front(),\
+                    pars.servers[i].server_map["listen"].front());
+            servers[i].pars = pars;
+        }
+        
         while(1)
         {
-            Server s(pars.servers[server_index % pars.servers.size()].server_map["host"].front(),\
-                     pars.servers[server_index % pars.servers.size()].server_map["listen"].front());
+            servers[sx % pars.servers.size()].serverRun(pars.servers[sx % pars.servers.size()]);
+            sx++;
+            // Server s(pars.servers[sx % pars.servers.size()].server_map["host"].front(),\
 		    s.pars = pars;
-            s.serverRun(pars.servers[server_index % pars.servers.size()]);
-            server_index++;
-            std::cout<<"hnaan";
+            //          pars.servers[sx % pars.servers.size()].server_map["listen"].front());
+            // s.serverRun(pars.servers[sx % pars.servers.size()]);
         }
         return (0);
     }
