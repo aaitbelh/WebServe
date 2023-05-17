@@ -33,7 +33,10 @@ class Server
         std::list<Client>   clientList;
         t_server server;
     public:
+        Server();
         Server(std::string host, std::string port);
+        void    operator()(std::string host, std::string port);
+        Server& operator=(Server& srv);
         void serverRun(t_server &server);
 		ParsConf pars;
         ~Server();

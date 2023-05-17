@@ -32,8 +32,10 @@ private:
 public:
 	Socket(std::string host, std::string service);
 	~Socket();
+	Socket();
 	void    creatSocket(std::string& host, std::string& service);
 	SOCKET  operator()();
+	void  operator()(std::string host, std::string service);
 };
 
 

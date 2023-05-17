@@ -35,6 +35,7 @@ typedef struct s_location
 	{
 		return location_map[element];
 	}
+
 }t_location;
 typedef struct s_server
 {
@@ -46,7 +47,14 @@ typedef struct s_server
 		return server_map[element];
 	}
 	std::string getErrorPage(int StatusCode);
-
+	s_server &operator=(const s_server &obj)
+	{
+		this->each_server = obj.each_server;
+		this->server_map = obj.server_map;
+		this->error_page = obj.error_page;
+		this->locations = obj.locations;
+		return *this;
+	}
 } t_server;
 
 
@@ -78,5 +86,6 @@ class ParsConf
 	void exec_cgi();
 	void split_host();
 	void check_host();
+	// ParsConf &operator=(const ParsConf &obj);
 };
 #endif

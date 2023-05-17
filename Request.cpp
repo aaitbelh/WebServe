@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 10:36:52 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 13:26:52 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -405,24 +405,23 @@ void        Request::setAllinfos(Client &client)
 	std::vector<t_server> servers = GettheServer(client.parsingInfos, client);
 	matchTheLocation(client, servers);
 }
-// std::string generaterandname()
-// {
-//     std::string str;
+std::string generaterandname()
+{
+    std::string str;
 
-//     std::srand(std::time(0));  // Seed the random number generator
+    std::srand(std::time(0));  // Seed the random number generator
 
-//     for (int i = 0; i < 10; ++i) {
-//         char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
-//         string += c;
-//     }
-//     std::cout << << std:endl;
-//     return randomString;
-// }
+    for (int i = 0; i < 10; ++i) {
+        char c = 'a' + std::rand() % 26;  // Generate a random uppercase letter
+        str += c;
+    }
+    return str;
+}
 
 void Request::exec_cgi(Client &client)
 {
 	char **env = (char **)malloc(sizeof(char **) * 5);
-    // std::stirng = generaterandname();
+    std::string str = generaterandname();
 	int fd = open("resp", O_TRUNC | O_RDWR | O_CREAT, 0666);
 	char *arg[3];
     env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
@@ -432,15 +431,14 @@ void Request::exec_cgi(Client &client)
     env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
     env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	env[6] = NULL;
-    std::cout << "wtf asa7bii " << MyFilename << std::endl;
     std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
     ++it;
     arg[0] = strdup((*it).c_str());
-	arg[1] = strdup((client.file_path).c_str());
-	arg[2] = NULL;
+	arg[1] = strdup(client.file_path.c_str());
     char buffer[1024];
 	pid_t f = fork();
-	if(f == 0)
+
+    if(f == 0)
 	{
 		dup2(fd, 1);
 		close(fd);
@@ -488,4 +486,6 @@ void Request::exec_cgi(Client &client)
         }
         header.append("Content-Length: " + s.str() + "\r\n");
     }
+    //! semd responss
+    //* drop client
 }

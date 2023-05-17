@@ -182,6 +182,15 @@ void ParsConf::split_host()
 		}
 	}
 }
+// ParsConf &ParsConf::operator=(const ParsConf &obj)
+// {
+// 	count_server = obj.count_server;
+// 	closed = obj.closed;
+// 	this->vec = obj.vec;
+// 	servers = obj.servers;
+// 	servers_ = obj.servers_;
+// 	return *this;
+// }
 void ParsConf::check_value(std::string &value)
 {
 	for(unsigned int i = 0; i < value.size(); i++)
@@ -318,8 +327,8 @@ void ParsConf::exec_cgi()
 	int fd = open("lolo", O_CREAT | O_RDWR | O_TRUNC, 0777);
 	char *arg[3];
 
-	arg[0] = strdup("/Users/mamellal/Desktop/webs/php-cgi");
-	arg[1] = strdup("/Users/mamellal/Desktop/webs/s.php");
+	arg[0] = strdup("/Users/ael-hayy/Desktop/WebServe/php-cgi");
+	arg[1] = strdup("/Users/ael-hayy/Desktop/WebServe/s.php");
 	arg[2] = NULL;
 	char *PATH_INFO = strdup(arg[0]);
 
