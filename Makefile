@@ -6,7 +6,7 @@
 #    By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/20 10:37:44 by ael-hayy          #+#    #+#              #
-#    Updated: 2023/05/14 18:57:27 by mamellal         ###   ########.fr        #
+#    Updated: 2023/05/17 14:13:14 by mamellal         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ FILES = Socket.cpp HandlGetRequest.cpp Client.cpp Request.cpp Response.cpp Serve
 OBJS = $(FILES:.cpp=.o)
 
 CC = clang++
-CFLAGS = -std=c++98 -g3 -fsanitize=address
+CFLAGS = -std=c++98 -g3 -fsanitize=address -g
 all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 18:20:22 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 21:01:42 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,8 +206,6 @@ void    Request::postRequestHandl()
             }
             if (r > 0)
             {
-                if (chunkedSize <= 0)
-                    std::cout<<"   :: "<<chunkedSize<<std::endl,buffer = removeContentLinght(const_cast<char*>(buffer), &r), std::cout<<"   :: "<<chunkedSize<<std::endl;
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -495,7 +493,5 @@ void Request::exec_cgi(Client &client)
             header.append("Content-Length: " + s.str() + "\r\n");
             client.cgi_finished = true;
         }
-    } 
-    //! semd responss
-    //* drop client
+    }
 }

@@ -6,11 +6,10 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 16:38:02 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 20:57:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsing.hpp"
 
 void ParsConf::countserver(char *av)
 {
@@ -187,7 +186,7 @@ ParsConf &ParsConf::operator=(const ParsConf &obj)
 	closed = obj.closed;
 	this->vec = obj.vec;
 	servers = obj.servers;
-	servers_ = obj.servers_;
+	// servers_ = obj.servers_;
 	return *this;
 }
 void ParsConf::check_value(std::string &value)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:32 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/04/29 12:09:10 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:19:53 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class Server
         Server();
         Server(std::string host, std::string port);
         void    operator()(std::string host, std::string port);
-        Server& operator=(Server& srv);
+        Server& operator=(const Server& srv);
         void serverRun(t_server &server);
 		ParsConf pars;
         ~Server();
