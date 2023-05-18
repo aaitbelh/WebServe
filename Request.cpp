@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 21:01:42 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/18 13:59:15 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ std::string GetquerySting(std::string &URI)
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
-    // std::cout << httpRequest << std::endl;
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
@@ -418,7 +417,6 @@ void Request::exec_cgi(Client &client)
     pid_t f;
     if(client.is_cgi == false)
     {
-        std::cout << "HIII " << std::endl;
 	    char **env = (char **)malloc(sizeof(char **) * 5);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
@@ -461,11 +459,11 @@ void Request::exec_cgi(Client &client)
 	    }
         client.is_cgi = true;
     }
-    if(waitpid(f, NULL, WNOHANG))
+    int status;
+    waitpid(f, &status, WNOHANG);
+    if(WIFEXITED(status))
     {
-        std::cout << "WELCOME BRO " << std::endl;
-        if(HeaderInfos["METHOD"] == "GET")
-        {
+        if(HeaderInfos["METHOD"] == "GET") {
             std::string head;
             close(fd);
             std::string &header = client.getRes().getHeader();
@@ -475,22 +473,20 @@ void Request::exec_cgi(Client &client)
             std::string strbuf;
             char charbuf[1024];
             stat(client.cgi_filename.c_str(), &b);
-            while(!tmpfile.eof())
-            {
+            while(!tmpfile.eof()) {
                 tmpfile.read(charbuf, 1024);
                 strbuf.append(charbuf, tmpfile.gcount());
-                if(strbuf.find("\r\n") != std::string::npos)
-                {
+                if(strbuf.find("\r\n") != std::string::npos) {
                     s << b.st_size - strbuf.find("\r\n\r\n") - 4;
                     break ;
                 }        
             }
-            std::cout << "HIIIIII " << std::endl;
             int Rvalue;
             header = setInfos_header(client, client.cgi_filename, &Rvalue);
             if(Rvalue)
                 sendResponse(Rvalue, client);
             header.append("Content-Length: " + s.str() + "\r\n");
+            std::cout << "cg filename " <<  client.cgi_filename << std::endl;
             client.cgi_finished = true;
         }
     }

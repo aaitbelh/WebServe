@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 18:16:17 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/18 14:02:43 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,15 +47,13 @@ int calcluateLen(Client &client)
 { 
 	DIR *dir = NULL;
     std::string path = client.dirname;
-	std::string nameofdir;
 	size_t i; 
 	for(i = path.size(); i > 0; --i)
 		if(path[i] == '/')
 			break;
-	nameofdir = path.substr(i + 1, path.size() - i);
+    std::string nameofdir = path.substr(i + 1);
     struct dirent *ent = NULL;
     if ((dir = opendir(path.c_str())) != NULL) {
-        // path.append("/");
     while ((ent = readdir(dir)) != NULL) {
             if(ent->d_name[0] != '.')
             {
@@ -64,8 +62,8 @@ int calcluateLen(Client &client)
                 client.dir_body.append(str);
             }
     }
-    client.dir_body.append("\n</ul></body></html>");
-    closedir(dir);
+        client.dir_body.append("\n</ul></body></html>");
+        closedir(dir);
     }
     return client.dir_body.length();
 }
@@ -73,7 +71,7 @@ std::string find_filename(Client &client)
 {
 	std::string filename = client.GetClientinfos().root;
     if(filename.empty())
-        filename =client.GetClientinfos().URI;
+        filename = client.GetClientinfos().URI;
 	std::ifstream file;
     struct stat buffer;
     stat(filename.c_str(), &buffer);
@@ -229,7 +227,7 @@ Response::Response()
     types["ico"] = "image/x-icon";
     types["svg"] = "image/svg+xml";
     types["php"] = "text/php";
-    types["perl"] = "text/perl";
+    types["pl"] = "text/perl";
     types["default"] = "application/octet-stream";
 
 }

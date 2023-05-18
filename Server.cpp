@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 21:02:47 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/18 13:02:21 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,13 +29,10 @@ void Server::serverRun(t_server &server)
     {
         std::list<Client>::iterator i = clientList.begin(), j;
         clientList.begin()->parsingInfos = this->pars;
-        std::cout << "before :::::"<< std::endl;
         // i->server = server;
-        std::cout << "after :::::"<< std::endl;
         j = i;
         while (i != clientList.end())
         {
-            std::cout << "damn it" << std::endl;
             ++j;
             acceptREADsocket(&readSet,&writeSet, *i, clientList, i);
             i = j;

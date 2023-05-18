@@ -6,11 +6,11 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 20:57:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/18 12:58:48 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
+#include "parsing.hpp"
 void ParsConf::countserver(char *av)
 {
 	fstream file;
@@ -30,7 +30,7 @@ void ParsConf::countserver(char *av)
 	if(!count_server || vec[0] != "server"){
 		std::cout << "There is no server"<< std::endl;
 		exit (0);
-		}
+	}
 	brackets_errors();
 }
 void ParsConf::fill_server()
