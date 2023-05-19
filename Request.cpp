@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 17:46:58 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 18:12:17 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,11 +427,13 @@ void Request::exec_cgi(Client &client)
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
-        env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-        env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-        env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+          env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
+        env[1] = strdup(("CONTENT_LENGTH="+HeaderInfos["Content-Length"]).c_str()); 
+        env[2] = strdup(("CONTENT_TYPE="+HeaderInfos["Content-Type"]).c_str()); 
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
         env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
+        env[5] = strdup("REDIRECT_STATUS=200");
+        env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
         std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
         ++it;
         arg[0] = strdup((*it).c_str());
