@@ -6,9 +6,10 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/16 17:14:23 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 20:59:33 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 #include "Socket.hpp"
@@ -50,10 +51,7 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    std::cout << " ai_addrlen "<< bind_address->ai_addrlen << std::endl;
-    std::cout << " ai_addr " << bind_address->ai_addr << std::endl;
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
-    std::cout << "bbbbbb"<< b << std::endl;
     if (b)
     {
         std::cerr<<"error in bind(): "<< strerror(b) << std::endl;
@@ -94,7 +92,7 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 		std::cerr<<"waitingForClients listn"<<strerror(errno)<<std::endl;
 		return (-1);
 	}
-	// std::cout<<"lalal\n";
+
 	return (0);
 }
 void    setSocketForReadAndWrite(fd_set *readSet, fd_set *writeSet, SOCKET socketListen)
@@ -109,7 +107,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 {
 	if (FD_ISSET(socketListen, readSet))
 	{
-		// std::cout<<"#WRTIHAAAA\n";
 		Client  client;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
@@ -120,7 +117,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 		}
 		clientList.push_front(client);
 	}
-	// std::cout<<"#WRTIHAAAA\n";
 	return (0);
 
 }
@@ -178,7 +174,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);
-                            // sendResponse(404, *i);
+                            sendResponse(400, *i);
                         }
                         else
                         {
@@ -212,18 +208,19 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 void 			sendResponse(int status, Client& client)
 {
 	std::map<int, std::string> status_code;
+	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
 	status_code[__NOTFOUND] = " 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>";
 	status_code[__BADREQUEST] = " 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>";
 	status_code[__FORBIDDEN] = " 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>403 Forbidden</h1></body></html>\r\n";
 	status_code[__METHODNOTALLOWED] = " 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 57\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>405 Method Not Allowed</h1></body></html>\r\n";
 	status_code[__REQUESTTIMEOUT] = " 408 Request Timeout\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>408 Request Timeout</h1></body></html>";
 	status_code[__BADGATEWAY] = " 502 Bad Gateway\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>502 Bad Gateway</h1></body></html>";
-	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
 	status_code[__NOTIMPLEMENTED] = " 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>501 Not Implemented</h1></body></html>";
 	status_code[__CONFLICT] = " 409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
 	status_code[__NOCONTENT] = " 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
 	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
 	std::string req = status_code[status];
+    std::cout << __SUCCESS << std::endl;
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	throw std::exception();

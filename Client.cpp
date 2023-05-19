@@ -6,22 +6,22 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:01 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/06 10:49:53 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 17:35:29 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "includes.hpp"
 
-Client::Client():sockett(-1), writable(0), is_dir(0), is_new(true)
+Client::Client():sockett(-1), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false)
 {
 }
 
-Client::Client(SOCKET socktt): sockett(socktt), writable(0), is_dir(0), is_new(true)
+Client::Client(SOCKET socktt): sockett(socktt), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false)
 {
     address_length = sizeof(address);
     
 }
-Client::Client(const Client& client): sockett(client.sockett), writable(0), is_dir(0), is_new(true)
+Client::Client(const Client& client): sockett(client.sockett), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false)
 {
     address_length = client.address_length;
     address = client.address;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 13:18:31 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/18 13:59:15 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ std::string GetquerySting(std::string &URI)
 void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList)
 {
     size_t pos = httpRequest.find(" ");
-    // std::cout << httpRequest << std::endl;
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
@@ -413,95 +412,89 @@ void        Request::setAllinfos(Client &client)
 std::string generaterandname()
 {
     std::string str;
-
-    std::srand(std::time(0));  // Seed the random number generator
-
-    for (int i = 0; i < 10; ++i) {
-        char c = 'a' + std::rand() % 26;
-        str += c;
-    }
+    std::srand(std::time(0));
+    std::stringstream ss;
+    ss << std::rand();
+    ss >> str;
     return str;
 }
 
 void Request::exec_cgi(Client &client)
 {
-	char **env = (char **)malloc(sizeof(char **) * 5);
-    std::string str = generaterandname();
-	int fd = open(str.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
-	char *arg[3];
-    env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-    env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-    env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
-    env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-    env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
-    std::cout << "wtf asa7bii " << MyFilename << std::endl;
-    std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
-    ++it;
-    arg[0] = strdup((*it).c_str());
-    std::cout << *it << std::endl;
-    if(HeaderInfos["METHOD"] == "POST")
+    pid_t f;
+    if(client.is_cgi == false)
     {
-        env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
-	    arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
-    }
-    else
-    {
-        env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
-	    arg[1] = strdup(("PATH_INFO="+ client.file_path).c_str());
-    }
-	env[6] = NULL;
-	arg[2] = NULL;
-    char buffer[1024];
-	pid_t f = fork();
-
-    if(f == 0)
-	{
-		dup2(fd, 1);
-		close(fd);
+	    char **env = (char **)malloc(sizeof(char **) * 5);
+        client.cgi_filename = generaterandname();
+	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
+	    char *arg[3];
+        env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
+        env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
+        env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+        env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
+        env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
+        std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
+        ++it;
+        arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
-            fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
-            dup2(fd, 0);
-            close(fd);    
+            env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
+	        arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
         }
-		if(execve(arg[0], arg, env) == -1)
-            std::cout << "execve failure" <<std::endl;
-        exit(1);
-	}
-    int status = 0;
-	while(waitpid(f, &status, WNOHANG))
-    {
-        if(WIFEXITED(status))
+        else
         {
-            break;
+            env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
+	        arg[1] = strdup(client.file_path.c_str());
         }
-    }
-    if(HeaderInfos["METHOD"] == "GET")
-    {
-        close(fd);
-        client.file.clear();
-        client.file.close();
-        client.file.open("resp");
-        std::string &header = client.getRes().getHeader();
-        struct stat b;
-        stat("resp", &b);
-        std::stringstream s;
-        client.contentLenghtCgi = 0;
-        std::ifstream tmpfile("resp");
-        std::string strbuf;
-        char charbuf[1024];
-        while(!tmpfile.eof())
-        {
-            tmpfile.read(charbuf, 1024);
-            strbuf.append(charbuf, tmpfile.gcount());
-            if(strbuf.find("\r\n") != std::string::npos)
+	    env[6] = NULL;
+	    arg[2] = NULL;
+        char buffer[1024];
+	    f = fork();
+        if(f == 0)
+	    {
+	    	dup2(fd, 1);
+	    	close(fd);
+            if(HeaderInfos["METHOD"] == "POST")
             {
-                s << b.st_size - strbuf.find("\r\n\r\n") - 4;
-                break ;
-            }        
-        }
-        header.append("Content-Length: " + s.str() + "\r\n");
+                fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
+                dup2(fd, 0);
+                close(fd);    
+            }
+	    	if(execve(arg[0], arg, env) == -1)
+                std::cout << "execve failure" <<std::endl;
+            exit(1);
+	    }
+        client.is_cgi = true;
     }
-    //! semd responss
-    //* drop client
+    int status;
+    waitpid(f, &status, WNOHANG);
+    if(WIFEXITED(status))
+    {
+        if(HeaderInfos["METHOD"] == "GET") {
+            std::string head;
+            close(fd);
+            std::string &header = client.getRes().getHeader();
+            struct stat b;
+            std::stringstream s;
+            std::ifstream tmpfile(client.cgi_filename);
+            std::string strbuf;
+            char charbuf[1024];
+            stat(client.cgi_filename.c_str(), &b);
+            while(!tmpfile.eof()) {
+                tmpfile.read(charbuf, 1024);
+                strbuf.append(charbuf, tmpfile.gcount());
+                if(strbuf.find("\r\n") != std::string::npos) {
+                    s << b.st_size - strbuf.find("\r\n\r\n") - 4;
+                    break ;
+                }        
+            }
+            int Rvalue;
+            header = setInfos_header(client, client.cgi_filename, &Rvalue);
+            if(Rvalue)
+                sendResponse(Rvalue, client);
+            header.append("Content-Length: " + s.str() + "\r\n");
+            std::cout << "cg filename " <<  client.cgi_filename << std::endl;
+            client.cgi_finished = true;
+        }
+    }
 }

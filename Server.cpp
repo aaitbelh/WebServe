@@ -6,13 +6,13 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 10:37:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/18 13:02:21 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server& Server::operator=(Server& srv)
+Server& Server::operator=(const Server& srv)
 {
     return(*this);
 }
@@ -24,11 +24,12 @@ void Server::serverRun(t_server &server)
     if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
         throw std::exception();
     acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
+    signal(SIGPIPE, SIG_IGN);
     if (clientList.size())
     {
         std::list<Client>::iterator i = clientList.begin(), j;
         clientList.begin()->parsingInfos = this->pars;
-        i->server = server;
+        // i->server = server;
         j = i;
         while (i != clientList.end())
         {
@@ -62,6 +63,7 @@ int main(int ac, char **av)
     {
         if(ac == 2)
         {
+            signal(SIGPIPE, SIG_IGN);
             ParsConf pars;
             pars.countserver(av[1]);
             pars.fill_server();

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/02 18:02:37 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/16 08:59:43 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/17 18:22:12 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 void			sendBody(Client& client)
 {
+	if(client.is_cgi && !client.cgi_finished)
+		return;
 	client.getRes().fillTheBody(client);
 	std::string req =  client.getRes().getBody();
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
@@ -22,7 +24,7 @@ void			sendBody(Client& client)
 }
 void			sendHeader(Client& client)
 {
-	if(!client.isitnew())
+	if(!client.isitnew() || (client.is_cgi && !client.cgi_finished))
 		return;
 	std::string req = client.getRes().getHeader();
 	int r = send(client.getSocket(), req.c_str(), req.length(), 0);

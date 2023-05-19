@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/17 13:01:39 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/18 12:58:48 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parsing.hpp"
-
 void ParsConf::countserver(char *av)
 {
 	fstream file;
@@ -31,7 +30,7 @@ void ParsConf::countserver(char *av)
 	if(!count_server || vec[0] != "server"){
 		std::cout << "There is no server"<< std::endl;
 		exit (0);
-		}
+	}
 	brackets_errors();
 }
 void ParsConf::fill_server()
@@ -39,7 +38,6 @@ void ParsConf::fill_server()
 	t_server tmp_server;
 	for(unsigned int j = 0; j < vec.size() ; j++)
 	{
-		std::cout << vec[j] << std::endl;
 		if(vec[j] == "};")
 		{
 			servers_.push_back(tmp_server);
@@ -188,7 +186,7 @@ ParsConf &ParsConf::operator=(const ParsConf &obj)
 	closed = obj.closed;
 	this->vec = obj.vec;
 	servers = obj.servers;
-	servers_ = obj.servers_;
+	// servers_ = obj.servers_;
 	return *this;
 }
 void ParsConf::check_value(std::string &value)
