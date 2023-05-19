@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 18:12:17 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/19 18:20:23 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,7 +423,7 @@ void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 5);
+	    char **env = (char **)malloc(sizeof(char **) * 8);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
@@ -439,15 +439,15 @@ void Request::exec_cgi(Client &client)
         arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
-            env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
+            env[7] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
         }
         else
         {
-            env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
+            env[7] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
-	    env[6] = NULL;
+	    env[8] = NULL;
 	    arg[2] = NULL;
         char buffer[1024];
 	    client.cgi_pid = fork();
