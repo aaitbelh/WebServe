@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 17:46:58 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 21:16:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,29 +423,32 @@ void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 5);
+	    char **env = (char **)malloc(sizeof(char **) * 9);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
-        env[0] = strdup(("METHOD="+HeaderInfos["METHOD"]).c_str()); 
-        env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
-        env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
+          env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
+        env[1] = strdup(("CONTENT_LENGTH="+HeaderInfos["Content-Length"]).c_str()); 
+        env[2] = strdup(("CONTENT_TYPE="+HeaderInfos["Content-Type"]).c_str()); 
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
         env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
+        env[5] = strdup("REDIRECT_STATUS=200");
         std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
         ++it;
         arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
-            env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
+            env[6] = strdup(("PATH_TRANSLATED="+ MyFilename).c_str());
+            env[7] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
         }
         else
         {
-            env[5] = strdup(("PATH_INFO="+ client.file_path).c_str());
+            env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
+            env[7] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
-	    env[6] = NULL;
+	    env[8] = NULL;
 	    arg[2] = NULL;
         char buffer[1024];
 	    client.cgi_pid = fork();

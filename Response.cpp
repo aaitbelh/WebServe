@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 17:46:16 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 18:40:06 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,10 @@ std::string find_filename(Client &client)
             std::string path =  client.GetClientinfos().alias + "/" + *it;
             file.open(path);
             if(file.is_open() && file.good())
+            {
+                exit(1);
                 return path;
+            }
         }
     }
 	return client.GetClientinfos().alias;
@@ -186,8 +189,11 @@ void Response::fillTheHeader(Client &client)
 {
 	checkRediraction(client);
     std::string filename = find_filename(client);
-    if(filename == "")
+    if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
+    {
+        sendResponse(200, client);
         filename = client.server.error_page[404];
+    }
     int Rvalue;
     if((this->getFileType(filename) == "text/php"  && *client.GetClientinfos().cgi_pass.begin() == "php") || (this->getFileType(filename) == "text/perl" && *client.GetClientinfos().cgi_pass.begin() == "pl"))
     {

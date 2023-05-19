@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 18:25:44 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 20:59:17 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid )
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
                     try
                     {
@@ -208,7 +208,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 void 			sendResponse(int status, Client& client)
 {
 	std::map<int, std::string> status_code;
-	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
+	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 41\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
 	status_code[__NOTFOUND] = " 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>";
 	status_code[__BADREQUEST] = " 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>";
 	status_code[__FORBIDDEN] = " 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>403 Forbidden</h1></body></html>\r\n";
@@ -221,6 +221,7 @@ void 			sendResponse(int status, Client& client)
 	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
 	std::string req = status_code[status];
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
+    req.replace(req.find("Webserv/1.0"), 9, client.GetClientinfos().server_name);
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	throw std::exception();
 }
