@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/18 14:02:43 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 17:46:16 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ void Response::fillTheHeader(Client &client)
     if(filename == "")
         filename = client.server.error_page[404];
     int Rvalue;
-    if(this->getFileType(filename) == "text/php" || this->getFileType(filename) == "text/perl")
+    if((this->getFileType(filename) == "text/php"  && *client.GetClientinfos().cgi_pass.begin() == "php") || (this->getFileType(filename) == "text/perl" && *client.GetClientinfos().cgi_pass.begin() == "pl"))
     {
         client.file_path = filename;
         client.getRequest().exec_cgi(client);

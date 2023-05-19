@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/18 13:59:15 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 17:46:58 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -421,7 +421,6 @@ std::string generaterandname()
 
 void Request::exec_cgi(Client &client)
 {
-    pid_t f;
     if(client.is_cgi == false)
     {
 	    char **env = (char **)malloc(sizeof(char **) * 5);
@@ -432,14 +431,14 @@ void Request::exec_cgi(Client &client)
         env[1] = strdup(("Content-Length="+HeaderInfos["Content-Length"]).c_str()); 
         env[2] = strdup(("Content-Type="+HeaderInfos["Content-Type"]).c_str()); 
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-        env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["HTTP_COOKIE"]).c_str()); 
+        env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
         ++it;
         arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
             env[5] = strdup(("PATH_INFO="+ MyFilename).c_str());
-	        arg[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
+	        arg[1] = strdup(MyFilename.c_str());
         }
         else
         {
@@ -449,8 +448,8 @@ void Request::exec_cgi(Client &client)
 	    env[6] = NULL;
 	    arg[2] = NULL;
         char buffer[1024];
-	    f = fork();
-        if(f == 0)
+	    client.cgi_pid = fork();
+        if(client.cgi_pid == 0)
 	    {
 	    	dup2(fd, 1);
 	    	close(fd);
@@ -466,8 +465,8 @@ void Request::exec_cgi(Client &client)
 	    }
         client.is_cgi = true;
     }
-    int status;
-    waitpid(f, &status, WNOHANG);
+    int status = -1;
+    waitpid(client.cgi_pid, &status, WNOHANG);
     if(WIFEXITED(status))
     {
         if(HeaderInfos["METHOD"] == "GET") {
