@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/17 20:59:33 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 18:25:44 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);
-                            sendResponse(400, *i);
+                            sendResponse(200, client);
                         }
                         else
                         {
@@ -220,7 +220,6 @@ void 			sendResponse(int status, Client& client)
 	status_code[__NOCONTENT] = " 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
 	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
 	std::string req = status_code[status];
-    std::cout << __SUCCESS << std::endl;
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	throw std::exception();
