@@ -123,6 +123,9 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     if (HeaderInfos["METHOD"] == "POST")
     {
         totalBytes = atol(HeaderInfos["Content-Length"].c_str());
+        // std::cout<<(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))])<<std::endl;
+        // exit(0);
+        // openFile(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))]);
         openFile(types_rev[HeaderInfos["Content-Type"]]);
     }
 }
@@ -178,6 +181,10 @@ void    Request::postRequestHandl()
 {
     char    *buffer = const_cast<char *>(httpRequest.c_str());
     int r = httpRequest.length();
+    // if (HeaderInfos["Content-Type"].find("boundary=") != std::string::npos)
+    // {
+        
+    // }
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
