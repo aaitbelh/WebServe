@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 18:40:06 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 08:51:58 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ std::string find_filename(Client &client)
             file.open(path);
             if(file.is_open() && file.good())
             {
-                exit(1);
                 return path;
             }
         }
