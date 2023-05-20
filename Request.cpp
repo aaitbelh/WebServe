@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 21:16:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 10:34:56 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,10 +360,13 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 			}
 			else
 				tmpstruct.return_ = 0;
-			if(it->isExist("cgi_pass"))
+			if(it->isExist("php") || it->isExist("pl"))
 			{
 				tmpstruct.cgi_pass_ = 1;
-				tmpstruct.cgi_pass = it->getElemetnBylocation("cgi_pass");
+                if(it->isExist("php"))
+                    tmpstruct.cgi_pass["php"] = *(++it)->getElemetnBylocation("php").begin();
+                if(it->isExist("pl"))
+                    tmpstruct.cgi_pass["pl"] = *(++it)->getElemetnBylocation("pl").begin();
 			}
 			else
 				tmpstruct.cgi_pass_ = 0;
@@ -427,7 +430,8 @@ void Request::exec_cgi(Client &client)
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
-          env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
+        int fd2 = 0;
+        env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
         env[1] = strdup(("CONTENT_LENGTH="+HeaderInfos["Content-Length"]).c_str()); 
         env[2] = strdup(("CONTENT_TYPE="+HeaderInfos["Content-Type"]).c_str()); 
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
@@ -441,6 +445,7 @@ void Request::exec_cgi(Client &client)
             env[6] = strdup(("PATH_TRANSLATED="+ MyFilename).c_str());
             env[7] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
+            fd2 = open(MyFilename.c_str(), O_RDWR | O_CREAT ); 
         }
         else
         {
@@ -458,9 +463,8 @@ void Request::exec_cgi(Client &client)
 	    	close(fd);
             if(HeaderInfos["METHOD"] == "POST")
             {
-                fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
-                dup2(fd, 0);
-                close(fd);    
+                dup2(fd2, 0);
+                close(fd2);    
             }
 	    	if(execve(arg[0], arg, env) == -1)
                 std::cout << "execve failure" <<std::endl;

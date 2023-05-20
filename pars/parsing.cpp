@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/18 12:58:48 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/19 21:28:55 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,13 @@ void ParsConf::fill_server_element()
 			if(_index != -1)
 			{
 				std::string key = mylist.front();
-				duplocation.push_back(mylist.front());
+				if(_index != 5)
+					duplocation.push_back(mylist.front());
+				else if(_index == 5)
+				{
+					mylist.pop_front();
+					key = mylist.front();
+				}
 				mylist.pop_front();
 				if(_index == 1)
 				{

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 11:55:37 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 10:33:54 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,16 +33,8 @@ struct all_infos
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;
-	std::list<std::string> cgi_pass;
+	std::map<std::string, std::string> cgi_pass;
 	struct s_location location_div;
-	void setTodefault()
-	{
-		for(size_t i = 0; i < 3; ++i)
-			allow_methods[i] = 0;
-		autoindex = 0;
-		return_ = 0;
-		cgi_pass_ = 0;
-	}
 	
 };
 class Client
