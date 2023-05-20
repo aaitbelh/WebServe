@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 18:09:03 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/19 20:59:17 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid )
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
                     try
                     {
@@ -174,7 +174,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);
-                            sendResponse(200, *i);
+                            sendResponse(200, client);
                         }
                         else
                         {
@@ -208,7 +208,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
 void 			sendResponse(int status, Client& client)
 {
 	std::map<int, std::string> status_code;
-	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 40\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
+	status_code[__SUCCESS] = " 200 OK\r\nContent-Type: text/html\r\nContent-Length: 41\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>200 OK</h1></body></html>";
 	status_code[__NOTFOUND] = " 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>";
 	status_code[__BADREQUEST] = " 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>";
 	status_code[__FORBIDDEN] = " 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 48\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>403 Forbidden</h1></body></html>\r\n";
@@ -220,8 +220,8 @@ void 			sendResponse(int status, Client& client)
 	status_code[__NOCONTENT] = " 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
 	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
 	std::string req = status_code[status];
-    std::cout << __SUCCESS << std::endl;
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
+    req.replace(req.find("Webserv/1.0"), 9, client.GetClientinfos().server_name);
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	throw std::exception();
 }
