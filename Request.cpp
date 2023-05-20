@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 10:34:56 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 20:47:34 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -364,9 +364,9 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 			{
 				tmpstruct.cgi_pass_ = 1;
                 if(it->isExist("php"))
-                    tmpstruct.cgi_pass["php"] = *(++it)->getElemetnBylocation("php").begin();
+                    tmpstruct.cgi_pass["php"] = *it->getElemetnBylocation("php").begin();
                 if(it->isExist("pl"))
-                    tmpstruct.cgi_pass["pl"] = *(++it)->getElemetnBylocation("pl").begin();
+                    tmpstruct.cgi_pass["pl"] = *it->getElemetnBylocation("pl").begin();
 			}
 			else
 				tmpstruct.cgi_pass_ = 0;
@@ -421,7 +421,6 @@ std::string generaterandname()
     ss >> str;
     return str;
 }
-
 void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
@@ -437,9 +436,6 @@ void Request::exec_cgi(Client &client)
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
         env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         env[5] = strdup("REDIRECT_STATUS=200");
-        std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
-        ++it;
-        arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
             env[6] = strdup(("PATH_TRANSLATED="+ MyFilename).c_str());
@@ -449,6 +445,10 @@ void Request::exec_cgi(Client &client)
         }
         else
         {
+            if(client.getRes().getFileType(client.file_path) == "text/php")
+                arg[0] =  strdup(client.GetClientinfos().cgi_pass["php"].c_str());
+            else if(client.getRes().getFileType(client.file_path) == "text/perl")
+                arg[0] =  strdup(client.GetClientinfos().cgi_pass["pl"].c_str());
             env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
             env[7] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
