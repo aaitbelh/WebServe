@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/19 18:21:06 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/19 21:07:34 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,23 +427,26 @@ void Request::exec_cgi(Client &client)
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
-          env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
+        int fd2 = 0;
+        env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
         env[1] = strdup(("CONTENT_LENGTH="+HeaderInfos["Content-Length"]).c_str()); 
         env[2] = strdup(("CONTENT_TYPE="+HeaderInfos["Content-Type"]).c_str()); 
         env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
         env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         env[5] = strdup("REDIRECT_STATUS=200");
-        env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
         std::list<std::string>::iterator it = client.GetClientinfos().cgi_pass.begin();
         ++it;
         arg[0] = strdup((*it).c_str());
         if(HeaderInfos["METHOD"] == "POST")
         {
+            env[6] = strdup(("PATH_TRANSLATED="+ MyFilename).c_str());
             env[7] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
+            fd2 = open(MyFilename.c_str(), O_RDWR | O_CREAT ); 
         }
         else
         {
+            env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
             env[7] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
@@ -457,9 +460,8 @@ void Request::exec_cgi(Client &client)
 	    	close(fd);
             if(HeaderInfos["METHOD"] == "POST")
             {
-                fd = open(MyFilename.c_str(), O_RDWR | O_CREAT );
-                dup2(fd, 0);
-                close(fd);    
+                dup2(fd2, 0);
+                close(fd2);    
             }
 	    	if(execve(arg[0], arg, env) == -1)
                 std::cout << "execve failure" <<std::endl;
