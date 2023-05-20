@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 20:55:26 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 21:50:00 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ void Response::fillTheHeader(Client &client)
     if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
         filename = client.server.error_page[404];
     int Rvalue;
-    if((this->getFileType(filename) == "text/php"  && client.GetClientinfos().cgi_pass.count("php") ) || (this->getFileType(filename) == "text/perl" && client.GetClientinfos().cgi_pass.count("pl")))
+    if((this->getFileType(filename) == "text/php"  && client.GetClientinfos().cgi_pass.count("php")) || (this->getFileType(filename) == "text/perl" && client.GetClientinfos().cgi_pass.count("pl")))
     {
         client.file_path = filename;
         client.getRequest().exec_cgi(client);

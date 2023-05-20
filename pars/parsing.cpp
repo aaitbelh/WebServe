@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/19 21:28:55 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/20 21:43:09 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void ParsConf::check_host()
 {
 	std::string ip[2];
 	int r = 0;
-	servers.push_back(servers_[0]); //  8080
+	servers.push_back(servers_[0]);
 	for(unsigned int i = 1; i < servers_.size(); i++)
 	{
 		for(int j = 0; j < servers.size();j++)

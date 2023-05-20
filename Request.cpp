@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 20:47:34 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/20 21:53:43 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,21 +425,14 @@ void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 9);
+	    char **env = (char **)malloc(sizeof(char **) * 2);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
         int fd2 = 0;
-        env[0] = strdup(("REQUEST_METHOD="+HeaderInfos["METHOD"]).c_str()); 
-        env[1] = strdup(("CONTENT_LENGTH="+HeaderInfos["Content-Length"]).c_str()); 
-        env[2] = strdup(("CONTENT_TYPE="+HeaderInfos["Content-Type"]).c_str()); 
-        env[3] = strdup(("QUERY_STRING="+HeaderInfos["query"]).c_str()); 
-        env[4] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
-        env[5] = strdup("REDIRECT_STATUS=200");
         if(HeaderInfos["METHOD"] == "POST")
         {
-            env[6] = strdup(("PATH_TRANSLATED="+ MyFilename).c_str());
-            env[7] = strdup(("PATH_INFO="+ MyFilename).c_str());
+            env[0] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
             fd2 = open(MyFilename.c_str(), O_RDWR | O_CREAT ); 
         }
@@ -449,11 +442,10 @@ void Request::exec_cgi(Client &client)
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["php"].c_str());
             else if(client.getRes().getFileType(client.file_path) == "text/perl")
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["pl"].c_str());
-            env[6] = strdup(("PATH_TRANSLATED="+ client.file_path).c_str());
-            env[7] = strdup(("PATH_INFO="+ client.file_path).c_str());
+            env[0] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
-	    env[8] = NULL;
+	    env[1] = NULL;
 	    arg[2] = NULL;
         char buffer[1024];
 	    client.cgi_pid = fork();
