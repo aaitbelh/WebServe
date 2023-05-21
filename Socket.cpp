@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 16:54:53 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 18:09:14 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             }
             client.writable = 1;
         }
-        if ((client.getHeaderInfos()["METHOD"] != "POST")  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        if ((client.getHeaderInfos()["METHOD"] != "POST" || !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
                 handlGetRequest(client);

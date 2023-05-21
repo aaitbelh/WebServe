@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 17:48:36 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 17:49:35 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,14 +78,14 @@ int Request::checkRequest_validation(Client& client)
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
         }
-        else if(stol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
-        {
-            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
-            if(rvalue)
-                sendResponse(400, client);
-            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
-            return 1;
-        }
+        // else if(stol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
+        // {
+        //     client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
+        //     if(rvalue)
+        //         sendResponse(400, client);
+        //     changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
+        //     return 1;
+        // }
         else if(HeaderInfos["URI"].length() > 2048){
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
             if(rvalue)

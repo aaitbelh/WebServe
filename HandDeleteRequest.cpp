@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/21 17:48:39 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 17:49:01 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ void 			handlDeleteRequest(Client& client)
     file.open(filename);
     struct stat buffer;
     stat(filename.c_str(), &buffer);
-    //check file if is it exist and has write permission
     if(!access(filename.c_str(), F_OK) && !access(filename.c_str(), W_OK))
     {
         if(S_ISDIR(buffer.st_mode))
