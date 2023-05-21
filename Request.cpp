@@ -120,14 +120,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
         httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
-    if (HeaderInfos["METHOD"] == "POST")
-    {
-        totalBytes = atol(HeaderInfos["Content-Length"].c_str());
-        // std::cout<<(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))])<<std::endl;
-        // exit(0);
-        // openFile(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))]);
-        openFile(types_rev[HeaderInfos["Content-Type"]]);
-    }
+    
 }
 void    Request::openFile(std::string& extention)
 {
@@ -176,15 +169,12 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     return buffer + i;
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
-
-void    Request::postRequestHandl()
+size_t& Request::getTotalBytes(){return (totalBytes);}
+std::string& Request::getMyFilename(){return (MyFilename);}
+void    Request::postRequestHandl(Client& client)
 {
     char    *buffer = const_cast<char *>(httpRequest.c_str());
     int r = httpRequest.length();
-    // if (HeaderInfos["Content-Type"].find("boundary=") != std::string::npos)
-    // {
-        
-    // }
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
@@ -199,6 +189,11 @@ void    Request::postRequestHandl()
             {
                 r = tem.length();
                 buffer = removeContentLinght(const_cast<char *>(tem.c_str()), &r);
+                if (resevedBytes + chunkedSize > client.GetClientinfos().max_body_size)
+                {
+                    client.getStatus() = 413;
+                    throw std::exception();
+                }
                 if (!buffer)
                     return ;
             }
@@ -377,6 +372,8 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
+            tmpstruct.max_body_size = std::stod(servers[i].server_map["max_client_body_size"].front());
+            std::cout << "max body size : " << tmpstruct.max_body_size << std::endl;
 			return ;
 		}	
 	}

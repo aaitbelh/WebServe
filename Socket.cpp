@@ -161,12 +161,17 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.parseInfos(i, clientList);
                     request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
+                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                    {
+                        client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
+                        request.openFile(client.getRequest().types_rev[client.getRequest().getHeaderInfos()["Content-Type"]]);
+                    }
                 }
-                else if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" &&)
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
                 {
                     try
                     {
-                        request.postRequestHandl();
+                        request.postRequestHandl(*i);
                     }
                     catch (...)
                     {
@@ -174,14 +179,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);
-                            sendResponse(200, client);
                         }
                         else
                         {
-                            request.getMyfile().close();
-                            sendResponse(404, *i);
+                            if (i->getStatus() == 413)
+                                remove(request.getMyFilename().c_str());
+                            else
+                                request.getMyfile().close();
                         }
-                        return (0);
+                        sendResponse(i->getStatus(), client);
                     }
                 }
 

@@ -33,6 +33,7 @@ struct all_infos
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;
+	double max_body_size;
 	std::map<std::string, std::string> cgi_pass;
 	struct s_location location_div;
 	
@@ -65,6 +66,7 @@ class Client
 	std::string dirname;
 	std::string file_path;
 	pid_t cgi_pid;
+	int&	getStatus();
 
 	bool is_cgi;
 	bool cgi_finished;
@@ -77,6 +79,7 @@ private:
     Response    response;
 	struct all_infos allinfos;
 	bool is_new;
+	int			status;
 };
 
 

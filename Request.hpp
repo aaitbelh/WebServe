@@ -31,13 +31,15 @@ public:
     std::map<std::string, std::string>& getHeaderInfos();
     void setToFile(const std::string& str);
     size_t  getResevedByts();
-    void    postRequestHandl();
+    void    postRequestHandl(Client& client);
 	std::fstream&    getMyfile();
     void    setAllinfos(Client &client);
     char    *removeContentLinght(char *buffer, int *r);
     void    openFile(std::string& extention);
     int     checkRequest_validation(Client& client);
     void exec_cgi(Client &client);
+    size_t& getTotalBytes();
+    std::string& getMyFilename();
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;

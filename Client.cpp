@@ -12,7 +12,7 @@
 
 #include "includes.hpp"
 
-Client::Client():sockett(-1), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false)
+Client::Client():sockett(-1), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false),  status(200)
 {
 }
 
@@ -65,4 +65,10 @@ struct all_infos& Client::GetClientinfos()
 bool& Client::isitnew()
 {
 	return this->is_new;
+}
+
+//get status code
+int& Client::getStatus()
+{
+    return this->status;
 }
