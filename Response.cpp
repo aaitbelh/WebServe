@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 21:50:00 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/21 15:12:38 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,19 +46,29 @@ std::string Response::getFileType(std::string filename)
 int calcluateLen(Client &client)
 { 
 	DIR *dir = NULL;
-    std::string path = client.dirname;
-	size_t i; 
-	for(i = path.size(); i > 0; --i)
-		if(path[i] == '/')
-			break;
-    std::string nameofdir = path.substr(i + 1);
-    struct dirent *ent = NULL;
+    std::vector<std::string> URI_vector = PathTovector(client.GetClientinfos().URI);
+    std::vector<std::string> root_vector = PathTovector(client.GetClientinfos().root);
+    std::cout << "URI " << client.GetClientinfos().URI << std::endl;
+    std::cout << "Alias  " << client.GetClientinfos().alias << std::endl;
+    std::cout << "root " << client.GetClientinfos().root << std::endl;
+    std::vector<std::string> alias_vector = PathTovector(client.GetClientinfos().alias);
+    std::string path = client.GetClientinfos().alias;
     if ((dir = opendir(path.c_str())) != NULL) {
+    path = "";
+    for(size_t i = root_vector.size(); i < alias_vector.size(); i++)
+    {
+        path += "/" + alias_vector[i];
+    }
+    // std::cout << "URI: " << client.GetClientinfos().URI << std::endl;
+    // std::cout << "Alias: " << client.GetClientinfos().alias << std::endl;
+    // std::cout << "path : " << path << std::endl;
+    struct dirent *ent = NULL;
     while ((ent = readdir(dir)) != NULL) {
             if(ent->d_name[0] != '.')
             {
                 std::string filename = ent->d_name;
-                std::string str = "\n<li><a href=\"" + nameofdir + "/" + filename + "\">" + filename + "</a></li>";
+                std::string str = "\n<li><a href=\"" + path  + "/" + filename + "\">" + filename + "</a></li>";
+                // std::cout << str << std::endl;
                 client.dir_body.append(str);
             }
     }
@@ -69,7 +79,8 @@ int calcluateLen(Client &client)
 }
 std::string find_filename(Client &client)
 {
-	std::string filename = client.GetClientinfos().root;
+	std::string filename = client.GetClientinfos().alias;
+    std::string path;
     if(filename.empty())
         filename = client.GetClientinfos().URI;
 	std::ifstream file;
@@ -79,12 +90,13 @@ std::string find_filename(Client &client)
     {
         for(std::list<std::string>::iterator it = client.GetClientinfos().index_files.begin(); it !=  client.GetClientinfos().index_files.end(); ++it)
         {
-            std::string path =  client.GetClientinfos().alias + "/" + *it;
+            path =  client.GetClientinfos().alias + "/" + *it;
             file.open(path);
             if(file.is_open() && file.good())
             {
                 return path;
             }
+            file.close();
         }
     }
 	return client.GetClientinfos().alias;
@@ -188,7 +200,6 @@ void Response::fillTheHeader(Client &client)
 {
 	checkRediraction(client);
     std::string filename = find_filename(client);
-    std::cout << filename << std::endl;
     if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
         filename = client.server.error_page[404];
     int Rvalue;

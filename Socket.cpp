@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 10:13:12 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 10:14:24 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
+                else if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" &&)
                 {
                     try
                     {
@@ -170,7 +170,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     }
                     catch (...)
                     {
-                        if (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" || request.types_rev[request.getHeaderInfos()["Content-Type"]] == "php")
+                        if ((request.types_rev[request.getHeaderInfos()["Content-Type"]] == "text/perl" && client.GetClientinfos().cgi_pass.count("pl")) || (request.types_rev[request.getHeaderInfos()["Content-Type"]] == "php" && client.GetClientinfos().cgi_pass.count("php")))
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 21:53:43 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/21 14:54:32 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
+    std::cout << "0----->" << HeaderInfos["URI"] << std::endl;
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
@@ -491,7 +492,6 @@ void Request::exec_cgi(Client &client)
             if(Rvalue)
                 sendResponse(Rvalue, client);
             header.append("Content-Length: " + s.str() + "\r\n");
-            std::cout << "cg filename " <<  client.cgi_filename << std::endl;
             client.cgi_finished = true;
         }
     }
