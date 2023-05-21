@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 10:14:24 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 16:54:53 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,10 +159,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                 if (request.getHeaderInfos()["METHOD"] ==  "")
                 {
                     request.parseInfos(i, clientList);
-                    request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
+                    request.setAllinfos(client);
+                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
+                    {
+                        client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
+                        client.getRequest().openFile(client.getRequest().types_rev[client.getRequest().getHeaderInfos()["Content-Type"]]);
+                    }
                 }
-                else if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" &&)
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
                     try
                     {

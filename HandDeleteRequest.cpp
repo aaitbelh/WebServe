@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/09 17:37:36 by aaitbelh          #+#    #+#             */
-/*   Updated: 2023/05/17 10:34:42 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 17:47:22 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,14 @@
 
 void 			handlDeleteRequest(Client& client)
 {
-    std::ifstream file;
+    std::fstream file;
     std::string filename = find_filename(client);
     int Rvalue = 0;
     file.open(filename);
     struct stat buffer;
     stat(filename.c_str(), &buffer);
-    if(((file.is_open() && file.good()) && !access(filename.c_str(), W_OK)) && !filename.empty())
+    //check file if is it exist and has write permission
+    if(!access(filename.c_str(), F_OK) && !access(filename.c_str(), W_OK))
     {
         if(S_ISDIR(buffer.st_mode))
         {
@@ -61,9 +62,20 @@ void 			handlDeleteRequest(Client& client)
     }
     else
     {
+        if(!access(filename.c_str(), F_OK) && access(filename.c_str(), R_OK))
+        {
+            if(!client.server.error_page.count(403))
+                sendResponse(403, client);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[403], &Rvalue);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 403 Forbiden");
+            if(Rvalue)
+                sendResponse(403, client);
+            return ;
+        }
         if(!client.server.error_page.count(404))
             sendResponse(404, client);
         client.getRes().getHeader() = setInfos_header(client, client.server.error_page[404], &Rvalue);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 403 Forbiden");
         if(Rvalue)
             sendResponse(404, client);
     }
