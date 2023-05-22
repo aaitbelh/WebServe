@@ -6,15 +6,16 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 18:09:14 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 13:56:26 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 #include "Socket.hpp"
+#include <string.h>
 
-Socket::Socket(std::string host, std::string service)
+Socket::Socket(std::string host, std::string service):socketfd(-1)
 {
 	creatSocket(host, service);
 }
@@ -51,6 +52,8 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    
+    fcntl(socketfd, F_SETFL, O_NONBLOCK);
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
     if (b)
     {
@@ -107,10 +110,11 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 {
 	if (FD_ISSET(socketListen, readSet))
 	{
-		Client  client;
+		Client client;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
+        fcntl(sock, F_SETFL, O_NONBLOCK);
 		client.setSocket(sock);
-		if (client.getSocket() < 0)
+		if (client.getSocket() <= 0)
 		{
 			std::cerr<< "socket < 0" << strerror(errno) << std::endl;
 			return (-1);
@@ -161,6 +165,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.parseInfos(i, clientList);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                     request.setAllinfos(client);
+                    if(!client.getRequest().isAllowedMethod(client))
+                    {
+                        int Rvalue = 0;
+                        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[__METHODNOTALLOWED], &Rvalue);
+                        if(Rvalue)
+                            sendResponse(__METHODNOTALLOWED, client);
+                        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 405 Method Not Allowed");
+                        client.requestvalid = 0;
+                    }
                     if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                     {
                         client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
@@ -206,7 +219,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     catch (std::exception)
     {
         close(client.getSocket());
-         clientList.erase(i);
+        clientList.erase(i);
     }
     return 1;
 }

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/21 16:53:14 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 13:45:40 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ public:
     int     checkRequest_validation(Client& client);
     void    exec_cgi(Client &client);
     size_t&  getTotalBytes();
+    bool     isAllowedMethod(Client &client);
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;

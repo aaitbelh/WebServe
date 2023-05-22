@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 17:49:35 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 13:57:50 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,14 @@ int Request::checkRequest_validation(Client& client)
 {
     int rvalue = 0;
     std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    if(HeaderInfos["METHOD"] != "GET" && HeaderInfos["METHOD"] != "POST" && HeaderInfos["METHOD"] != "DELETE")
+    {
+        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[501], &rvalue);
+        if(rvalue)
+            sendResponse(501, client);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 501 Not Implemented");
+        return 1;
+    }
     for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
     {
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
@@ -350,7 +358,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 			}
 			else
 				for(size_t i = 0; i < 3; ++i)
-					tmpstruct.allow_methods[i] = 0;
+					tmpstruct.allow_methods[i] = 1;
 			if(it->isExist("autoindex") && it->getElemetnBylocation("autoindex").front() == "1")
 				tmpstruct.autoindex = 1;
 			else
@@ -449,7 +457,6 @@ void Request::exec_cgi(Client &client)
         }
 	    env[1] = NULL;
 	    arg[2] = NULL;
-        char buffer[1024];
 	    client.cgi_pid = fork();
         if(client.cgi_pid == 0)
 	    {
@@ -467,12 +474,11 @@ void Request::exec_cgi(Client &client)
         client.is_cgi = true;
     }
     int status = -1;
-    waitpid(client.cgi_pid, &status, WNOHANG);
+    waitpid(client.cgi_pid, &status, 0);
     if(WIFEXITED(status))
     {
         if(HeaderInfos["METHOD"] == "GET") {
             std::string head;
-            close(fd);
             std::string &header = client.getRes().getHeader();
             struct stat b;
             std::stringstream s;
@@ -496,6 +502,17 @@ void Request::exec_cgi(Client &client)
             client.cgi_finished = true;
         }
     }
+}
+
+bool Request::isAllowedMethod(Client &client)
+{
+    if(HeaderInfos["METHOD"] == "GET" && client.GetClientinfos().allow_methods[0])
+        return true;
+    else if(HeaderInfos["METHOD"] == "POST" && client.GetClientinfos().allow_methods[1])
+        return true;
+    else if(HeaderInfos["METHOD"] == "DELETE" && client.GetClientinfos().allow_methods[2])
+        return true;
+    return false;
 }
 
 size_t& Request::getTotalBytes() {return (totalBytes);}
