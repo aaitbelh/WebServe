@@ -6,13 +6,12 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 15:12:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 23:36:46 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "includes.hpp"
 #include "Response.hpp"
-
 void Response::fillTheBody(Client &client)
 {    
     std::string body;
@@ -26,8 +25,12 @@ void Response::fillTheBody(Client &client)
 		client.dir_body.clear();
 		client.is_dir = 0;
     }
+    std::cout << client.file.eof() << " && "  << body.empty() << std::endl;
+    
     if(client.file.eof() && body.empty())
-        throw std::exception(); 
+    {
+        throw std::exception();
+    }
 }
 std::string&    Response::getHeader(){
     return (header);
@@ -198,6 +201,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
 }
 void Response::fillTheHeader(Client &client)
 {
+    
 	checkRediraction(client);
     std::string filename = find_filename(client);
     if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
@@ -221,7 +225,6 @@ void    changeTheHeaderby(Client &client, const std::string &element)
     std::string &header = client.getRes().getHeader();
     header.erase(0, header.find("\r\n"));
     header.insert(0,element);
-    
 }
 Response::Response()
 {
