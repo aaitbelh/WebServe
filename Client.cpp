@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:01 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 11:28:58 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 14:17:36 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,10 @@
 
 Client::Client():sockett(-1), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false), cgi_pid(-1)
 {
-    memset (&address, 0, sizeof(struct sockaddr_in));
-    address_length = sizeof(address);
 }
 
 Client::Client(SOCKET socktt): sockett(socktt), writable(0), is_dir(0), is_new(true), is_cgi(false), cgi_finished(false), cgi_pid(-1)
 {
-    memset (&address, 0, sizeof(struct sockaddr_in));
     address_length = sizeof(address);
     
 }

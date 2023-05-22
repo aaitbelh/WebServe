@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 13:56:26 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 14:17:26 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,11 +110,10 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 {
 	if (FD_ISSET(socketListen, readSet))
 	{
-		Client client;
+		Client  client;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
-        fcntl(sock, F_SETFL, O_NONBLOCK);
 		client.setSocket(sock);
-		if (client.getSocket() <= 0)
+		if (client.getSocket() < 0)
 		{
 			std::cerr<< "socket < 0" << strerror(errno) << std::endl;
 			return (-1);
@@ -122,7 +121,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 		clientList.push_front(client);
 	}
 	return (0);
-
 }
 
 char* get_name(Client& client)
