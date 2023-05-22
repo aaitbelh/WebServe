@@ -6,13 +6,12 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 15:12:38 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 14:04:14 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "includes.hpp"
 #include "Response.hpp"
-
 void Response::fillTheBody(Client &client)
 {    
     std::string body;
@@ -26,8 +25,10 @@ void Response::fillTheBody(Client &client)
 		client.dir_body.clear();
 		client.is_dir = 0;
     }
+    std::cout << client.file.eof() << " && "  << body.empty() << std::endl;
+    
     if(client.file.eof() && body.empty())
-        throw std::exception(); 
+        throw std::exception();
 }
 std::string&    Response::getHeader(){
     return (header);
@@ -48,9 +49,6 @@ int calcluateLen(Client &client)
 	DIR *dir = NULL;
     std::vector<std::string> URI_vector = PathTovector(client.GetClientinfos().URI);
     std::vector<std::string> root_vector = PathTovector(client.GetClientinfos().root);
-    std::cout << "URI " << client.GetClientinfos().URI << std::endl;
-    std::cout << "Alias  " << client.GetClientinfos().alias << std::endl;
-    std::cout << "root " << client.GetClientinfos().root << std::endl;
     std::vector<std::string> alias_vector = PathTovector(client.GetClientinfos().alias);
     std::string path = client.GetClientinfos().alias;
     if ((dir = opendir(path.c_str())) != NULL) {
@@ -59,16 +57,12 @@ int calcluateLen(Client &client)
     {
         path += "/" + alias_vector[i];
     }
-    // std::cout << "URI: " << client.GetClientinfos().URI << std::endl;
-    // std::cout << "Alias: " << client.GetClientinfos().alias << std::endl;
-    // std::cout << "path : " << path << std::endl;
     struct dirent *ent = NULL;
     while ((ent = readdir(dir)) != NULL) {
             if(ent->d_name[0] != '.')
             {
                 std::string filename = ent->d_name;
                 std::string str = "\n<li><a href=\"" + path  + "/" + filename + "\">" + filename + "</a></li>";
-                // std::cout << str << std::endl;
                 client.dir_body.append(str);
             }
     }
@@ -198,6 +192,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
 }
 void Response::fillTheHeader(Client &client)
 {
+    
 	checkRediraction(client);
     std::string filename = find_filename(client);
     if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
@@ -221,7 +216,6 @@ void    changeTheHeaderby(Client &client, const std::string &element)
     std::string &header = client.getRes().getHeader();
     header.erase(0, header.find("\r\n"));
     header.insert(0,element);
-    
 }
 Response::Response()
 {

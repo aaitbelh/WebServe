@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/21 16:53:14 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 17:36:14 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ public:
     void                    addToReqyest(const char *req, int r);
     void                    setType(REQUES_TYPE reqType);
     REQUES_TYPE             getType();
+    std::string&            getMyFilename();
     const std::string&     getHttpRequest();
     void parseInfos(std::list<Client>::iterator& i, std::list<Client>& clientList);
     std::map<std::string, std::string>  types_rev;
@@ -37,9 +38,10 @@ public:
     char    *removeContentLinght(char *buffer, int *r);
     void    openFile(std::string& extention);
     int     checkRequest_validation(Client& client);
-    void exec_cgi(Client &client);
-    size_t& getTotalBytes();
-    std::string& getMyFilename();
+    void    exec_cgi(Client &client);
+    size_t&  getTotalBytes();
+    bool     isAllowedMethod(Client &client);
+    void free_all();
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -53,6 +55,8 @@ private:
     FILE             *tmp;
     std::fstream MyFile;
     std::string MyFilename;
+    char **env;
+    char *arg[3];
 };
 std::vector<std::string> PathTovector(std::string element);
 #endif

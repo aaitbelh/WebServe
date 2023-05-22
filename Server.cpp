@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/18 13:02:21 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 20:18:16 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,7 @@ void Server::serverRun(t_server &server)
 {
     fd_set  readSet;
     fd_set  writeSet;
-    std::cout<<"socketlitn: "<<socketListen()<<std::endl;
     setSocketForReadAndWrite(&readSet, &writeSet, socketListen());
-    std::cout<<"socketlitn: "<<socketListen()<<std::endl;
     waitingForClients(&readSet, &writeSet, socketListen(), clientList);
     acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
     signal(SIGPIPE, SIG_IGN);

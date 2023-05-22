@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 17:49:35 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 17:37:05 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "includes.hpp"
 
-Request::Request(/* args */): resevedBytes(0)
+Request::Request(/* args */): resevedBytes(0), chunkedSize(0), totalBytes(0)
 {
     types_rev["text/html"] = "html";
     types_rev["text/html"] = "htm";
@@ -55,6 +55,14 @@ int Request::checkRequest_validation(Client& client)
 {
     int rvalue = 0;
     std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    if(HeaderInfos["METHOD"] != "GET" && HeaderInfos["METHOD"] != "POST" && HeaderInfos["METHOD"] != "DELETE")
+    {
+        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[501], &rvalue);
+        if(rvalue)
+            sendResponse(501, client);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 501 Not Implemented");
+        return 1;
+    }
     for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
     {
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
@@ -78,14 +86,6 @@ int Request::checkRequest_validation(Client& client)
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
         }
-        // else if(stol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
-        // {
-        //     client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
-        //     if(rvalue)
-        //         sendResponse(400, client);
-        //     changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
-        //     return 1;
-        // }
         else if(HeaderInfos["URI"].length() > 2048){
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
             if(rvalue)
@@ -132,8 +132,8 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
 }
 void    Request::openFile(std::string& extention)
 {
+    std::cout << "open file" << std::endl;
     std::stringstream ss;
-
     srand(time(0));
     ss << rand();
     ss << ".";
@@ -142,6 +142,12 @@ void    Request::openFile(std::string& extention)
     ss << extention;
     std::string name(ss.str());
     MyFilename = name;
+    if (access(name.c_str(), F_OK) == 0)
+    {
+        std::cout << "file exist" << std::endl;
+        name = name.insert(0, "11");
+    }
+    std::cout << "file name : " << name << std::endl;
     MyFile.open(name, std::ios::app);
 }
 
@@ -150,7 +156,7 @@ int stringToHexx(std::string& hexString)
     int intValue;
 
     std::stringstream ss;
-    ss << std::hex << hexString; // convert to integer
+    ss << std::hex << hexString; 
     ss >> intValue;
     return (intValue);
 }
@@ -168,12 +174,9 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     std::string tem(buffer, buffer + i);
     i += 2;
     *r -= i;
-    chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
+    chunkedSize = stringToHexx(tem);
     if (!chunkedSize)
-    {
         throw exception();
-
-    }
     return buffer + i;
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
@@ -216,6 +219,8 @@ void    Request::postRequestHandl(Client& client)
             }
             if (r > 0)
             {
+                if (chunkedSize <= 0)
+                    buffer = removeContentLinght(const_cast<char*>(buffer), &r);
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -352,7 +357,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 			}
 			else
 				for(size_t i = 0; i < 3; ++i)
-					tmpstruct.allow_methods[i] = 0;
+					tmpstruct.allow_methods[i] = 1;
 			if(it->isExist("autoindex") && it->getElemetnBylocation("autoindex").front() == "1")
 				tmpstruct.autoindex = 1;
 			else
@@ -427,18 +432,28 @@ std::string generaterandname()
     ss >> str;
     return str;
 }
+void Request::free_all()
+{
+    int i = 0;
+    while(i < 2)
+    {
+        free(env[i]);
+        i++;
+    }
+    free(env);
+}
 void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 2);
+	    env = (char **)malloc(sizeof(char **) * 3);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
-	    char *arg[3];
         int fd2 = 0;
+        env[0] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         if(HeaderInfos["METHOD"] == "POST")
         {
-            env[0] = strdup(("PATH_INFO="+ MyFilename).c_str());
+            env[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
             fd2 = open(MyFilename.c_str(), O_RDWR | O_CREAT ); 
         }
@@ -448,12 +463,11 @@ void Request::exec_cgi(Client &client)
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["php"].c_str());
             else if(client.getRes().getFileType(client.file_path) == "text/perl")
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["pl"].c_str());
-            env[0] = strdup(("PATH_INFO="+ client.file_path).c_str());
+            env[1] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
-	    env[1] = NULL;
+	    env[2] = NULL;
 	    arg[2] = NULL;
-        char buffer[1024];
 	    client.cgi_pid = fork();
         if(client.cgi_pid == 0)
 	    {
@@ -466,13 +480,15 @@ void Request::exec_cgi(Client &client)
 	    }
         client.is_cgi = true;
     }
+    free_all();
+    free(arg[0]);
+    free(arg[1]);
     int status = -1;
-    waitpid(client.cgi_pid, &status, WNOHANG);
+    waitpid(client.cgi_pid, &status, 0);
     if(WIFEXITED(status))
     {
         if(HeaderInfos["METHOD"] == "GET") {
             std::string head;
-            close(fd);
             std::string &header = client.getRes().getHeader();
             struct stat b;
             std::stringstream s;
@@ -497,4 +513,15 @@ void Request::exec_cgi(Client &client)
             std::cout<<"hanananan\n";
         }
     }
+}
+
+bool Request::isAllowedMethod(Client &client)
+{
+    if(HeaderInfos["METHOD"] == "GET" && client.GetClientinfos().allow_methods[0])
+        return true;
+    else if(HeaderInfos["METHOD"] == "POST" && client.GetClientinfos().allow_methods[1])
+        return true;
+    else if(HeaderInfos["METHOD"] == "DELETE" && client.GetClientinfos().allow_methods[2])
+        return true;
+    return false;
 }

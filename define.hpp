@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   define.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ael-hayy <ael-hayy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/21 16:11:52 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/03/30 02:55:15 by ael-hayy         ###   ########.fr       */
+/*   Updated: 2023/05/22 11:24:00 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 
 #define     uploadsPath			"/Users/ael-hayy/Desktop/webb/uploads"
 //* TYPEDEF ....
-typedef struct sockaddr_storage SOCKADDRE;
+typedef struct sockaddr_in SOCKADDRE;
 
 typedef     int         REQUES_TYPE;
 

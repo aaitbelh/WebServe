@@ -6,15 +6,16 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 18:09:14 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 14:17:26 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 #include "Socket.hpp"
+#include <string.h>
 
-Socket::Socket(std::string host, std::string service)
+Socket::Socket(std::string host, std::string service):socketfd(-1)
 {
 	creatSocket(host, service);
 }
@@ -56,6 +57,8 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    
+    fcntl(socketfd, F_SETFL, O_NONBLOCK);
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
     if (b)
     {
@@ -84,7 +87,6 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 	SOCKET max_socket = socketListen;
 	for (std::list<Client>::iterator  i = clientList.begin(); i != clientList.end(); i++)
 	{
-        std::cout<<"client: "<<i->getSocket()<<std::endl;
 		FD_SET((*i).getSocket(), readSet);
 		FD_SET((*i).getSocket(), writeSet);
 		if (max_socket < (*i).getSocket())
@@ -93,10 +95,8 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 	struct timeval timeout;
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
-    std::cout<<"max_sock: "<<max_socket<<std::endl;
 	if (select(max_socket + 1, readSet, writeSet, 0, &timeout) < 0)
 	{
-        std::cout<<"max_socket: "<<max_socket<<std::endl;
 		std::cerr<<"waitingForClients select: "<<strerror(errno)<<std::endl;
 		throw std::exception();
 	}
@@ -127,7 +127,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 		clientList.push_front(client);
 	}
 	return (0);
-
 }
 
 char* get_name(Client& client)
@@ -170,6 +169,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                     request.parseInfos(i, clientList);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
                     request.setAllinfos(client);
+                    if(!client.getRequest().isAllowedMethod(client))
+                    {
+                        int Rvalue = 0;
+                        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[__METHODNOTALLOWED], &Rvalue);
+                        if(Rvalue)
+                            sendResponse(__METHODNOTALLOWED, client);
+                        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 405 Method Not Allowed");
+                        client.requestvalid = 0;
+                    }
                     if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                     {
                         client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
@@ -203,7 +211,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             }
             client.writable = 1;
         }
-        if ((client.getHeaderInfos()["METHOD"] != "POST" || !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        if ((client.getHeaderInfos()["METHOD"] != "POST" && !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
                 handlGetRequest(client);
@@ -215,6 +223,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     }
     catch (std::exception)
     {
+        std::cout<<"client closed"<<std::endl;
         close(client.getSocket());
         clientList.erase(i);
     }
