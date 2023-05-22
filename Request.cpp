@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 14:54:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 17:49:35 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,14 +73,24 @@ int Request::checkRequest_validation(Client& client)
             if(rvalue)
                 rvalue = 400;
             changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
+            return 1;
         }
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
         }
+        // else if(stol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
+        // {
+        //     client.getRes().getHeader() = setInfos_header(client, client.server.error_page[400], &rvalue);
+        //     if(rvalue)
+        //         sendResponse(400, client);
+        //     changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
+        //     return 1;
+        // }
         else if(HeaderInfos["URI"].length() > 2048){
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
             if(rvalue)
                 rvalue = 414;
+            return 1;
         }
     }
     if(rvalue)
@@ -103,7 +113,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
-    std::cout << "0----->" << HeaderInfos["URI"] << std::endl;
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
@@ -120,7 +129,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
         httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
-    
 }
 void    Request::openFile(std::string& extention)
 {
@@ -450,12 +458,8 @@ void Request::exec_cgi(Client &client)
         if(client.cgi_pid == 0)
 	    {
 	    	dup2(fd, 1);
-	    	close(fd);
             if(HeaderInfos["METHOD"] == "POST")
-            {
                 dup2(fd2, 0);
-                close(fd2);    
-            }
 	    	if(execve(arg[0], arg, env) == -1)
                 std::cout << "execve failure" <<std::endl;
             exit(1);
@@ -490,6 +494,7 @@ void Request::exec_cgi(Client &client)
                 sendResponse(Rvalue, client);
             header.append("Content-Length: " + s.str() + "\r\n");
             client.cgi_finished = true;
+            std::cout<<"hanananan\n";
         }
     }
 }

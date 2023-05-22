@@ -20,16 +20,16 @@ void Server::serverRun(t_server &server)
 {
     fd_set  readSet;
     fd_set  writeSet;
+    std::cout<<"socketlitn: "<<socketListen()<<std::endl;
     setSocketForReadAndWrite(&readSet, &writeSet, socketListen());
-    if (waitingForClients(&readSet, &writeSet, socketListen(), clientList) < 0)
-        throw std::exception();
+    std::cout<<"socketlitn: "<<socketListen()<<std::endl;
+    waitingForClients(&readSet, &writeSet, socketListen(), clientList);
     acceptNewConnictions(&readSet, &writeSet, socketListen(), clientList);
     signal(SIGPIPE, SIG_IGN);
     if (clientList.size())
     {
         std::list<Client>::iterator i = clientList.begin(), j;
         clientList.begin()->parsingInfos = this->pars;
-        // i->server = server;
         j = i;
         while (i != clientList.end())
         {
@@ -42,7 +42,10 @@ void Server::serverRun(t_server &server)
 Server::Server(std::string host, std::string port):socketListen(host.c_str(), port.c_str()), clientList()
 {
     if (socketListen() < 0)
+    {
+        std::cout<<"socketListen() < 0"<<std::endl;
         throw std::exception();
+    }
 }
 void    Server::operator()(std::string host, std::string port)
 {
@@ -76,14 +79,10 @@ int main(int ac, char **av)
                 servers[i].pars = pars;
             }
             
-            while(1)
+            while(true)
             {
                 servers[sx % pars.servers.size()].serverRun(pars.servers[sx % pars.servers.size()]);
                 sx++;
-                // Server s(pars.servers[sx % pars.servers.size()].server_map["host"].front(),\
-                s.pars = pars;
-                //          pars.servers[sx % pars.servers.size()].server_map["listen"].front());
-                // s.serverRun(pars.servers[sx % pars.servers.size()]);
             }
             return (0);
         }

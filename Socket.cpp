@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 10:14:24 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/21 18:09:14 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@ Socket::~Socket()
 }
 void  Socket::operator()(std::string host, std::string service)
 {
+    std::cout<<"host: "<<host<<std::endl;
+    static int i = 0;
+    if (i++)
+        exit(0);
 	creatSocket(host, service);
 }
 
@@ -44,8 +48,9 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     struct addrinfo *bind_address;
     getaddrinfo(host.c_str(), service.c_str(), &hints, &bind_address);
     socketfd = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
-    if (socketfd < 0)
+    if (socketfd <= 0)
     {
+        std::cout<<"socketfd: "<<socketfd<<std::endl;
         std::cerr<< strerror(socketfd)<<std::endl;
         throw std::exception() ;
     }
@@ -79,6 +84,7 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 	SOCKET max_socket = socketListen;
 	for (std::list<Client>::iterator  i = clientList.begin(); i != clientList.end(); i++)
 	{
+        std::cout<<"client: "<<i->getSocket()<<std::endl;
 		FD_SET((*i).getSocket(), readSet);
 		FD_SET((*i).getSocket(), writeSet);
 		if (max_socket < (*i).getSocket())
@@ -87,12 +93,13 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 	struct timeval timeout;
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
+    std::cout<<"max_sock: "<<max_socket<<std::endl;
 	if (select(max_socket + 1, readSet, writeSet, 0, &timeout) < 0)
 	{
-		std::cerr<<"waitingForClients listn"<<strerror(errno)<<std::endl;
-		return (-1);
+        std::cout<<"max_socket: "<<max_socket<<std::endl;
+		std::cerr<<"waitingForClients select: "<<strerror(errno)<<std::endl;
+		throw std::exception();
 	}
-
 	return (0);
 }
 void    setSocketForReadAndWrite(fd_set *readSet, fd_set *writeSet, SOCKET socketListen)
@@ -108,12 +115,14 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 	if (FD_ISSET(socketListen, readSet))
 	{
 		Client  client;
+        std::cout<<"socketListen....: "<<socketListen<<std::endl;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
-		if (client.getSocket() < 0)
+		if (client.getSocket() <= 0)
 		{
-			std::cerr<< "socket < 0" << strerror(errno) << std::endl;
-			return (-1);
+			std::cerr<< "socket < 0: " << strerror(errno) << std::endl;
+			exit(0);
+            return (-1);
 		}
 		clientList.push_front(client);
 	}
@@ -159,15 +168,15 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                 if (request.getHeaderInfos()["METHOD"] ==  "")
                 {
                     request.parseInfos(i, clientList);
-                    request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
-                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                    request.setAllinfos(client);
+                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                     {
                         client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
-                        request.openFile(client.getRequest().types_rev[client.getRequest().getHeaderInfos()["Content-Type"]]);
+                        client.getRequest().openFile(client.getRequest().types_rev[client.getRequest().getHeaderInfos()["Content-Type"]]);
                     }
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
                     try
                     {
@@ -194,7 +203,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             }
             client.writable = 1;
         }
-        if ((client.getHeaderInfos()["METHOD"] != "POST")  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        if ((client.getHeaderInfos()["METHOD"] != "POST" || !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
                 handlGetRequest(client);
@@ -207,7 +216,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     catch (std::exception)
     {
         close(client.getSocket());
-         clientList.erase(i);
+        clientList.erase(i);
     }
     return 1;
 }
