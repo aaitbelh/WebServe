@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 09:49:41 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 22:01:25 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ struct all_infos
 	bool autoindex;
 	std::string root;
 	std::string alias;
+	size_t max_client_body_size;
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;

@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 14:04:14 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 21:48:44 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,6 @@ void Response::fillTheBody(Client &client)
 		client.dir_body.clear();
 		client.is_dir = 0;
     }
-    std::cout << client.file.eof() << " && "  << body.empty() << std::endl;
-    
     if(client.file.eof() && body.empty())
         throw std::exception();
 }

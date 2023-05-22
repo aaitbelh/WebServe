@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 17:37:05 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/22 22:10:07 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,15 +86,22 @@ int Request::checkRequest_validation(Client& client)
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
         }
+        else if(std::atol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
+        {
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[413], &rvalue);
+            if(rvalue)
+                sendResponse(413, client);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 413 Request Entity Too Large");
+            return 1;
+        }
         else if(HeaderInfos["URI"].length() > 2048){
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 414 Request-URI Too Long");
             if(rvalue)
-                rvalue = 414;
+                sendResponse(414, client);
             return 1;
         }
     }
-    if(rvalue)
-        sendResponse(rvalue, client);
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -132,7 +139,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
 }
 void    Request::openFile(std::string& extention)
 {
-    std::cout << "open file" << std::endl;
     std::stringstream ss;
     srand(time(0));
     ss << rand();
@@ -144,10 +150,8 @@ void    Request::openFile(std::string& extention)
     MyFilename = name;
     if (access(name.c_str(), F_OK) == 0)
     {
-        std::cout << "file exist" << std::endl;
         name = name.insert(0, "11");
     }
-    std::cout << "file name : " << name << std::endl;
     MyFile.open(name, std::ios::app);
 }
 
@@ -385,8 +389,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
-            tmpstruct.max_body_size = std::stod(servers[i].server_map["max_client_body_size"].front());
-            std::cout << "max body size : " << tmpstruct.max_body_size << std::endl;
+            tmpstruct.max_client_body_size = std::atol(servers[i].getFromServerMap("max_client_body_size").front().c_str());
 			return ;
 		}	
 	}
@@ -517,11 +520,11 @@ void Request::exec_cgi(Client &client)
 
 bool Request::isAllowedMethod(Client &client)
 {
-    if(HeaderInfos["METHOD"] == "GET" && client.GetClientinfos().allow_methods[0])
-        return true;
-    else if(HeaderInfos["METHOD"] == "POST" && client.GetClientinfos().allow_methods[1])
-        return true;
-    else if(HeaderInfos["METHOD"] == "DELETE" && client.GetClientinfos().allow_methods[2])
-        return true;
-    return false;
+    if(HeaderInfos["METHOD"] == "GET" && !client.GetClientinfos().allow_methods[0])
+        return false;
+    else if(HeaderInfos["METHOD"] == "POST" && !client.GetClientinfos().allow_methods[1])
+        return false;
+    else if(HeaderInfos["METHOD"] == "DELETE" && !client.GetClientinfos().allow_methods[2])
+        return false;
+    return true;
 }
