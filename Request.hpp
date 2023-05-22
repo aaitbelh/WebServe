@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/05/22 13:45:40 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 17:36:14 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ public:
     void    exec_cgi(Client &client);
     size_t&  getTotalBytes();
     bool     isAllowedMethod(Client &client);
+    void free_all();
 private:
     REQUES_TYPE type;
     size_t      resevedBytes;
@@ -53,6 +54,8 @@ private:
     FILE             *tmp;
     std::fstream MyFile;
     std::string MyFilename;
+    char **env;
+    char *arg[3];
 };
 std::vector<std::string> PathTovector(std::string element);
 #endif
