@@ -6,7 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/20 21:43:09 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/23 12:14:01 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,6 +140,7 @@ void ParsConf::fill_server_element()
 		}
 		split_host();
 		check_duplcates(duplicate, 0);
+		// limitlisten();
 		duplicate.clear();
 		if(closed != count_location || closed_brack != count_server)
 		{
@@ -150,21 +151,26 @@ void ParsConf::fill_server_element()
 	check_host();
 }
 
+
 void ParsConf::check_host()
 {
-	std::string ip[2];
-	int r = 0;
 	servers.push_back(servers_[0]);
-	for(unsigned int i = 1; i < servers_.size(); i++)
+	for(unsigned int i = 0; i < servers_.size(); i++)
 	{
+		int r = 0;
 		for(int j = 0; j < servers.size();j++)
 		{
-			if(servers[j].server_map["host"].front() ==  servers_[i].server_map["host"].front()
-			&& servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
+			if(servers[j].server_map["listen"].front() == servers_[i].server_map["listen"].front())
 			{
 				r++;
 			}
 		}
+		int listen = atoi((servers_[i].server_map["listen"].front()).c_str());
+		int max_body = atoi((servers_[i].server_map["max_client_body_size"].front()).c_str());
+		if(listen > 65535 || listen < 0)
+			throw std::out_of_range("check port please");
+		if(max_body > 1000000 || listen < 0)
+			throw std::out_of_range("check port body size please");
 		if(r == 0)
 			servers.push_back(servers_[i]);
 	}

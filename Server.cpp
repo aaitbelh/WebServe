@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:41:50 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/18 13:02:21 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 21:56:17 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,8 +89,8 @@ int main(int ac, char **av)
         }
         std::cerr<<"... allah ihdiik ashrif _"<<std::endl;
     }
-    catch(...)
+    catch(std::exception &e)
     {
-        std::cerr<<"server taaa7 sir 7tal ghda"<<std::endl;
+        std::cout << e.what() << std::endl;
     }
 }

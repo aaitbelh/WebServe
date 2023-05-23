@@ -87,6 +87,7 @@ class ParsConf
 	void exec_cgi();
 	void split_host();
 	void check_host();
+	// void limitlisten();
 	ParsConf &operator=(const ParsConf &obj);
 };
 #endif

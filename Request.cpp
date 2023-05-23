@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 14:54:32 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 17:26:38 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -422,18 +422,29 @@ std::string generaterandname()
     ss >> str;
     return str;
 }
+void free_all(char **env)
+{
+    int i = 0;
+    while(i < 2)
+    {
+        free(env[i]);
+        i++;
+    }
+    free(env);
+}
 void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 2);
+	    char **env = (char **)malloc(sizeof(char **) * 3);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
 	    char *arg[3];
         int fd2 = 0;
+        env[0] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         if(HeaderInfos["METHOD"] == "POST")
         {
-            env[0] = strdup(("PATH_INFO="+ MyFilename).c_str());
+            env[1] = strdup(("PATH_INFO="+ MyFilename).c_str());
 	        arg[1] = strdup(MyFilename.c_str());
             fd2 = open(MyFilename.c_str(), O_RDWR | O_CREAT ); 
         }
@@ -443,10 +454,10 @@ void Request::exec_cgi(Client &client)
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["php"].c_str());
             else if(client.getRes().getFileType(client.file_path) == "text/perl")
                 arg[0] =  strdup(client.GetClientinfos().cgi_pass["pl"].c_str());
-            env[0] = strdup(("PATH_INFO="+ client.file_path).c_str());
+            env[1] = strdup(("PATH_INFO="+ client.file_path).c_str());
 	        arg[1] = strdup(client.file_path.c_str());
         }
-	    env[1] = NULL;
+	    env[2] = NULL;
 	    arg[2] = NULL;
         char buffer[1024];
 	    client.cgi_pid = fork();
@@ -464,6 +475,9 @@ void Request::exec_cgi(Client &client)
             exit(1);
 	    }
         client.is_cgi = true;
+        free_all(env);
+        free(arg[0]);
+        free(arg[1]);
     }
     int status = -1;
     waitpid(client.cgi_pid, &status, WNOHANG);
