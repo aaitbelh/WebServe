@@ -6,15 +6,16 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/21 16:50:25 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/23 13:22:18 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 #include "Socket.hpp"
+#include <string.h>
 
-Socket::Socket(std::string host, std::string service)
+Socket::Socket(std::string host, std::string service):socketfd(-1)
 {
 	creatSocket(host, service);
 }
@@ -25,6 +26,10 @@ Socket::~Socket()
 }
 void  Socket::operator()(std::string host, std::string service)
 {
+    std::cout<<"host: "<<host<<std::endl;
+    static int i = 0;
+    if (i++)
+        exit(0);
 	creatSocket(host, service);
 }
 
@@ -44,13 +49,15 @@ void    Socket::creatSocket(std::string& host, std::string& service)
     struct addrinfo *bind_address;
     getaddrinfo(host.c_str(), service.c_str(), &hints, &bind_address);
     socketfd = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
-    if (socketfd < 0)
+    if (socketfd <= 0)
     {
+        std::cout<<"socketfd: "<<socketfd<<std::endl;
         std::cerr<< strerror(socketfd)<<std::endl;
         throw std::exception() ;
     }
     int yes = 1;
     setsockopt(socketfd,SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    fcntl(socketfd, F_SETFL, O_NONBLOCK);
     int b = bind(socketfd, bind_address->ai_addr, bind_address->ai_addrlen);
     if (b)
     {
@@ -89,10 +96,9 @@ int  waitingForClients(fd_set *readSet, fd_set *writeSet, SOCKET socketListen, s
 	timeout.tv_usec = 0;
 	if (select(max_socket + 1, readSet, writeSet, 0, &timeout) < 0)
 	{
-		std::cerr<<"waitingForClients listn"<<strerror(errno)<<std::endl;
-		return (-1);
+		std::cerr<<"waitingForClients select: "<<strerror(errno)<<std::endl;
+		throw std::exception();
 	}
-
 	return (0);
 }
 void    setSocketForReadAndWrite(fd_set *readSet, fd_set *writeSet, SOCKET socketListen)
@@ -108,17 +114,18 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 	if (FD_ISSET(socketListen, readSet))
 	{
 		Client  client;
+        std::cout<<"socketListen....: "<<socketListen<<std::endl;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
-		if (client.getSocket() < 0)
+		if (client.getSocket() <= 0)
 		{
-			std::cerr<< "socket < 0" << strerror(errno) << std::endl;
-			return (-1);
+			std::cerr<< "socket < 0: " << strerror(errno) << std::endl;
+			exit(0);
+            return (-1);
 		}
 		clientList.push_front(client);
 	}
 	return (0);
-
 }
 
 char* get_name(Client& client)
@@ -159,14 +166,28 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                 if (request.getHeaderInfos()["METHOD"] ==  "")
                 {
                     request.parseInfos(i, clientList);
-                    request.setAllinfos(client);
                     client.requestvalid = client.getRequest().checkRequest_validation(client);
+                    request.setAllinfos(client);
+                    if(!client.getRequest().isAllowedMethod(client))
+                    {
+                        int Rvalue = 0;
+                        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[__METHODNOTALLOWED], &Rvalue);
+                        if(Rvalue)
+                            sendResponse(__METHODNOTALLOWED, client);
+                        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 405 Method Not Allowed");
+                        client.requestvalid = 0;
+                    }
+                    if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
+                    {
+                        client.getRequest().getTotalBytes() = atol(client.getRequest().getHeaderInfos()["Content-Length"].c_str());
+                        client.getRequest().openFile(client.getRequest().types_rev[client.getRequest().getHeaderInfos()["Content-Type"]]);
+                    }
                 }
-                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST")
+                if (client.getRequest().getHeaderInfos()["METHOD"] == "POST" && !client.requestvalid)
                 {
                     try
                     {
-                        request.postRequestHandl();
+                        request.postRequestHandl(*i);
                     }
                     catch (...)
                     {
@@ -174,21 +195,22 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                         {
                             request.getMyfile().close();
                             request.exec_cgi(client);
-                            sendResponse(200, client);
                         }
                         else
                         {
-                            request.getMyfile().close();
-                            sendResponse(404, *i);
+                            if (i->getStatus() == 413)
+                                remove(request.getMyFilename().c_str());
+                            else
+                                request.getMyfile().close();
                         }
-                        return (0);
+                        sendResponse(i->getStatus(), client);
                     }
                 }
 
             }
             client.writable = 1;
         }
-        if ((client.getHeaderInfos()["METHOD"] != "POST")  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        if ((client.getHeaderInfos()["METHOD"] != "POST" && !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
         {
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
                 handlGetRequest(client);
@@ -200,8 +222,9 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     }
     catch (std::exception)
     {
+        std::cout<<"client closed"<<std::endl;
         close(client.getSocket());
-         clientList.erase(i);
+        clientList.erase(i);
     }
     return 1;
 }
@@ -219,6 +242,7 @@ void 			sendResponse(int status, Client& client)
 	status_code[__CONFLICT] = " 409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
 	status_code[__NOCONTENT] = " 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
 	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
+    status_code[414] = " 414 Request-URI Too Long\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>414 Request-URI Too Long</h1></body></html>";
 	std::string req = status_code[status];
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
     req.replace(req.find("Webserv/1.0"), 9, client.GetClientinfos().server_name);

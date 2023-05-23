@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/20 10:33:54 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/22 22:01:25 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,11 @@ struct all_infos
 	bool autoindex;
 	std::string root;
 	std::string alias;
+	size_t max_client_body_size;
 	bool return_;
 	std::string return__;
 	bool cgi_pass_;
+	double max_body_size;
 	std::map<std::string, std::string> cgi_pass;
 	struct s_location location_div;
 	
@@ -45,9 +47,9 @@ class Client
     Client(const Client& client);
     
     ~Client();
-    const SOCKET&  getSocket();
+	SOCKET&  getSocket();
     void    setSocket(SOCKET sockett);
-    const SOCKADDRE& getAddress();
+    SOCKADDRE& getAddress();
     const socklen_t&  getAddrtLen();
     Request&     getRequest();
     std::string&    getResponse();
@@ -65,10 +67,15 @@ class Client
 	std::string dirname;
 	std::string file_path;
 	pid_t cgi_pid;
+	int&	getStatus();
 
 	bool is_cgi;
 	bool cgi_finished;
 	std::string cgi_filename;
+	void setAddrtLen(socklen_t len)
+	{
+		address_length = len;
+	}
 private:
     SOCKADDRE   address;
     SOCKET      sockett;
@@ -77,6 +84,7 @@ private:
     Response    response;
 	struct all_infos allinfos;
 	bool is_new;
+	int			status;
 };
 
 

@@ -349,6 +349,7 @@ void ParsConf::exec_cgi()
 		dup2(fd, 1);
 		close(fd);
 		execve(arg[0], arg, NULL);
+		std::cout<<"hnaaaaa aaa\n";
 	}
 	wait(NULL);
 }

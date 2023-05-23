@@ -6,14 +6,18 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2023/05/22 17:26:38 by mamellal         ###   ########.fr       */
+=======
+/*   Updated: 2023/05/22 22:10:07 by aaitbelh         ###   ########.fr       */
+>>>>>>> 592d0ffafe1bd92222219b01fdead6e1588d4536
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "includes.hpp"
 
-Request::Request(/* args */): resevedBytes(0)
+Request::Request(/* args */): resevedBytes(0), chunkedSize(0), totalBytes(0)
 {
     types_rev["text/html"] = "html";
     types_rev["text/html"] = "htm";
@@ -55,6 +59,14 @@ int Request::checkRequest_validation(Client& client)
 {
     int rvalue = 0;
     std::string allowedchars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+    if(HeaderInfos["METHOD"] != "GET" && HeaderInfos["METHOD"] != "POST" && HeaderInfos["METHOD"] != "DELETE")
+    {
+        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[501], &rvalue);
+        if(rvalue)
+            sendResponse(501, client);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 501 Not Implemented");
+        return 1;
+    }
     for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
     {
         if(allowedchars.find(HeaderInfos["URI"][i]) == std::string::npos)
@@ -73,18 +85,27 @@ int Request::checkRequest_validation(Client& client)
             if(rvalue)
                 rvalue = 400;
             changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 400 Bad Request");
+            return 1;
         }
         else if(HeaderInfos.count("Transfer-Encoding") && HeaderInfos["Transfer-Encoding"] != "chunked"){
             sendResponse(501, client);
         }
+        else if(std::atol(HeaderInfos["Content-Length"].c_str()) > client.GetClientinfos().max_client_body_size)
+        {
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[413], &rvalue);
+            if(rvalue)
+                sendResponse(413, client);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 413 Request Entity Too Large");
+            return 1;
+        }
         else if(HeaderInfos["URI"].length() > 2048){
             client.getRes().getHeader() = setInfos_header(client, client.server.error_page[414], &rvalue);
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 414 Request-URI Too Long");
             if(rvalue)
-                rvalue = 414;
+                sendResponse(414, client);
+            return 1;
         }
     }
-    if(rvalue)
-        sendResponse(rvalue, client);
     return 0;
 }
 std::string GetquerySting(std::string &URI)
@@ -103,7 +124,6 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
     HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
-    std::cout << "0----->" << HeaderInfos["URI"] << std::endl;
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
     pos = httpRequest.find(" ", pos + 1);
 	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
@@ -120,19 +140,10 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
         HeaderInfos[httpRequest.substr(pos, httpRequest.find(":"))] = httpRequest.substr(httpRequest.find(": ") + 2, httpRequest.find("\r\n") - (httpRequest.find(": ") + 2));
         httpRequest = httpRequest.substr(httpRequest.find("\r\n") + 2);
     }
-    if (HeaderInfos["METHOD"] == "POST")
-    {
-        totalBytes = atol(HeaderInfos["Content-Length"].c_str());
-        // std::cout<<(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))])<<std::endl;
-        // exit(0);
-        // openFile(HeaderInfos["Content-Type"].find("boundary=") == std::string::npos ? types_rev[HeaderInfos["Content-Type"]] : types_rev[std::string(HeaderInfos["Content-Type"].c_str(), HeaderInfos["Content-Type"].find(";"))]);
-        openFile(types_rev[HeaderInfos["Content-Type"]]);
-    }
 }
 void    Request::openFile(std::string& extention)
 {
     std::stringstream ss;
-
     srand(time(0));
     ss << rand();
     ss << ".";
@@ -141,6 +152,10 @@ void    Request::openFile(std::string& extention)
     ss << extention;
     std::string name(ss.str());
     MyFilename = name;
+    if (access(name.c_str(), F_OK) == 0)
+    {
+        name = name.insert(0, "11");
+    }
     MyFile.open(name, std::ios::app);
 }
 
@@ -149,7 +164,7 @@ int stringToHexx(std::string& hexString)
     int intValue;
 
     std::stringstream ss;
-    ss << std::hex << hexString; // convert to integer
+    ss << std::hex << hexString; 
     ss >> intValue;
     return (intValue);
 }
@@ -167,24 +182,18 @@ char    *Request::removeContentLinght(char *buffer, int *r)
     std::string tem(buffer, buffer + i);
     i += 2;
     *r -= i;
-    chunkedSize = stringToHexx(tem);//std::strtol(buffer, NULL, 16); ;//
+    chunkedSize = stringToHexx(tem);
     if (!chunkedSize)
-    {
         throw exception();
-
-    }
     return buffer + i;
 }
 std::fstream&    Request::getMyfile(){return (MyFile);}
-
-void    Request::postRequestHandl()
+size_t& Request::getTotalBytes(){return (totalBytes);}
+std::string& Request::getMyFilename(){return (MyFilename);}
+void    Request::postRequestHandl(Client& client)
 {
     char    *buffer = const_cast<char *>(httpRequest.c_str());
     int r = httpRequest.length();
-    // if (HeaderInfos["Content-Type"].find("boundary=") != std::string::npos)
-    // {
-        
-    // }
     if (HeaderInfos["Transfer-Encoding"] != "chunked")
     {
         MyFile.write(buffer, r);
@@ -199,6 +208,11 @@ void    Request::postRequestHandl()
             {
                 r = tem.length();
                 buffer = removeContentLinght(const_cast<char *>(tem.c_str()), &r);
+                if (resevedBytes + chunkedSize > client.GetClientinfos().max_body_size)
+                {
+                    client.getStatus() = 413;
+                    throw std::exception();
+                }
                 if (!buffer)
                     return ;
             }
@@ -213,6 +227,8 @@ void    Request::postRequestHandl()
             }
             if (r > 0)
             {
+                if (chunkedSize <= 0)
+                    buffer = removeContentLinght(const_cast<char*>(buffer), &r);
                 if (!buffer)
                     return ;
                 MyFile.write(buffer, r);
@@ -349,7 +365,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 			}
 			else
 				for(size_t i = 0; i < 3; ++i)
-					tmpstruct.allow_methods[i] = 0;
+					tmpstruct.allow_methods[i] = 1;
 			if(it->isExist("autoindex") && it->getElemetnBylocation("autoindex").front() == "1")
 				tmpstruct.autoindex = 1;
 			else
@@ -377,6 +393,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 				tmpstruct.root = it->getElemetnBylocation("root").front();
             }
 			tmpstruct.location_div = *it;
+            tmpstruct.max_client_body_size = std::atol(servers[i].getFromServerMap("max_client_body_size").front().c_str());
 			return ;
 		}	
 	}
@@ -422,7 +439,11 @@ std::string generaterandname()
     ss >> str;
     return str;
 }
+<<<<<<< HEAD
 void free_all(char **env)
+=======
+void Request::free_all()
+>>>>>>> 592d0ffafe1bd92222219b01fdead6e1588d4536
 {
     int i = 0;
     while(i < 2)
@@ -436,10 +457,9 @@ void Request::exec_cgi(Client &client)
 {
     if(client.is_cgi == false)
     {
-	    char **env = (char **)malloc(sizeof(char **) * 3);
+	    env = (char **)malloc(sizeof(char **) * 3);
         client.cgi_filename = generaterandname();
 	    int fd = open(client.cgi_filename.c_str(), O_TRUNC | O_RDWR | O_CREAT, 0666);
-	    char *arg[3];
         int fd2 = 0;
         env[0] = strdup(("HTTP_COOKIE="+HeaderInfos["Cookie"]).c_str()); 
         if(HeaderInfos["METHOD"] == "POST")
@@ -459,17 +479,12 @@ void Request::exec_cgi(Client &client)
         }
 	    env[2] = NULL;
 	    arg[2] = NULL;
-        char buffer[1024];
 	    client.cgi_pid = fork();
         if(client.cgi_pid == 0)
 	    {
 	    	dup2(fd, 1);
-	    	close(fd);
             if(HeaderInfos["METHOD"] == "POST")
-            {
                 dup2(fd2, 0);
-                close(fd2);    
-            }
 	    	if(execve(arg[0], arg, env) == -1)
                 std::cout << "execve failure" <<std::endl;
             exit(1);
@@ -479,13 +494,15 @@ void Request::exec_cgi(Client &client)
         free(arg[0]);
         free(arg[1]);
     }
+    free_all();
+    free(arg[0]);
+    free(arg[1]);
     int status = -1;
-    waitpid(client.cgi_pid, &status, WNOHANG);
+    waitpid(client.cgi_pid, &status, 0);
     if(WIFEXITED(status))
     {
         if(HeaderInfos["METHOD"] == "GET") {
             std::string head;
-            close(fd);
             std::string &header = client.getRes().getHeader();
             struct stat b;
             std::stringstream s;
@@ -507,6 +524,18 @@ void Request::exec_cgi(Client &client)
                 sendResponse(Rvalue, client);
             header.append("Content-Length: " + s.str() + "\r\n");
             client.cgi_finished = true;
+            std::cout<<"hanananan\n";
         }
     }
+}
+
+bool Request::isAllowedMethod(Client &client)
+{
+    if(HeaderInfos["METHOD"] == "GET" && !client.GetClientinfos().allow_methods[0])
+        return false;
+    else if(HeaderInfos["METHOD"] == "POST" && !client.GetClientinfos().allow_methods[1])
+        return false;
+    else if(HeaderInfos["METHOD"] == "DELETE" && !client.GetClientinfos().allow_methods[2])
+        return false;
+    return true;
 }
