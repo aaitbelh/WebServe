@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/23 13:25:08 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/23 14:00:02 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,15 @@ int Request::checkRequest_validation(Client& client)
         if(rvalue)
             sendResponse(501, client);
         changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 501 Not Implemented");
+        return 1;
+    }
+    if(HeaderInfos["VERSION"] != "HTTP/1.1" && HeaderInfos["VERSION"] != "HTTP/1.0")
+    {
+        client.getRes().getHeader() = setInfos_header(client, client.server.error_page[505], &rvalue);
+        HeaderInfos["VERSION"] = "HTTP/1.1";
+        if(rvalue)
+            sendResponse(400, client);
+        changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + "400 Bad Request");
         return 1;
     }
     for(size_t i = 0; i < HeaderInfos["URI"].size(); ++i)
@@ -119,10 +128,13 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
 {
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
-    HeaderInfos["URI"] = httpRequest.substr(pos + 1, httpRequest.find(" ", pos + 1) - pos - 1);
+    std::cout << "METHOD: " << HeaderInfos["METHOD"] << std::endl;
+    httpRequest = httpRequest.substr(pos + 1);
+    HeaderInfos["URI"] = httpRequest.substr(0, httpRequest.find(" "));
+    std::cout << "URI: " << HeaderInfos["URI"] << std::endl;
+    httpRequest = httpRequest.substr(httpRequest.find(" ") + 1);
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
-    pos = httpRequest.find(" ", pos + 1);
-	HeaderInfos["VERSION"] = httpRequest.substr(pos + 1, httpRequest.find("\r\n") - pos - 1);
+	HeaderInfos["VERSION"] = httpRequest.substr(0, httpRequest.find("\r\n"));
     pos = httpRequest.find("\r\n") + 2;
     httpRequest = httpRequest.substr(pos);
     pos = 0;

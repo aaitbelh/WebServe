@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/23 13:22:18 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/23 14:05:26 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,6 @@ Socket::~Socket()
 void  Socket::operator()(std::string host, std::string service)
 {
     std::cout<<"host: "<<host<<std::endl;
-    static int i = 0;
-    if (i++)
-        exit(0);
 	creatSocket(host, service);
 }
 
