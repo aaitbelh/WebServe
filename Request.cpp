@@ -6,11 +6,7 @@
 /*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2023/05/22 17:26:38 by mamellal         ###   ########.fr       */
-=======
-/*   Updated: 2023/05/22 22:10:07 by aaitbelh         ###   ########.fr       */
->>>>>>> 592d0ffafe1bd92222219b01fdead6e1588d4536
+/*   Updated: 2023/05/23 13:25:08 by mamellal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -439,11 +435,7 @@ std::string generaterandname()
     ss >> str;
     return str;
 }
-<<<<<<< HEAD
-void free_all(char **env)
-=======
 void Request::free_all()
->>>>>>> 592d0ffafe1bd92222219b01fdead6e1588d4536
 {
     int i = 0;
     while(i < 2)
@@ -490,7 +482,7 @@ void Request::exec_cgi(Client &client)
             exit(1);
 	    }
         client.is_cgi = true;
-        free_all(env);
+        free_all();
         free(arg[0]);
         free(arg[1]);
     }
