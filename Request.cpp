@@ -6,7 +6,7 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/23 14:00:02 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/23 14:58:53 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -494,17 +494,14 @@ void Request::exec_cgi(Client &client)
             exit(1);
 	    }
         client.is_cgi = true;
-        free_all();
-        free(arg[0]);
-        free(arg[1]);
     }
-    free_all();
-    free(arg[0]);
-    free(arg[1]);
     int status = -1;
     waitpid(client.cgi_pid, &status, 0);
     if(WIFEXITED(status))
     {
+        free_all();
+        free(arg[0]);
+        free(arg[1]);
         if(HeaderInfos["METHOD"] == "GET") {
             std::string head;
             std::string &header = client.getRes().getHeader();
