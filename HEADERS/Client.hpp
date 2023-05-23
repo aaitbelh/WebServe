@@ -6,14 +6,14 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:43:26 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 22:01:25 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/23 20:02:28 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #include "includes.hpp"
-#include "pars/parsing.hpp"
+#include "../pars/parsing.hpp"
 
 class Socket;
 class Request;
@@ -37,6 +37,7 @@ struct all_infos
 	double max_body_size;
 	std::map<std::string, std::string> cgi_pass;
 	struct s_location location_div;
+	
 	
 };
 class Client

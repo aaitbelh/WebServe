@@ -6,12 +6,12 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:47 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/23 14:58:53 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/23 21:25:56 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "includes.hpp"
+#include "../HEADERS/includes.hpp"
 
 Request::Request(/* args */): resevedBytes(0), chunkedSize(0), totalBytes(0)
 {
@@ -128,10 +128,8 @@ void Request::parseInfos(std::list<Client>::iterator& i, std::list<Client>& clie
 {
     size_t pos = httpRequest.find(" ");
     HeaderInfos["METHOD"] =  httpRequest.substr(0, pos);
-    std::cout << "METHOD: " << HeaderInfos["METHOD"] << std::endl;
     httpRequest = httpRequest.substr(pos + 1);
     HeaderInfos["URI"] = httpRequest.substr(0, httpRequest.find(" "));
-    std::cout << "URI: " << HeaderInfos["URI"] << std::endl;
     httpRequest = httpRequest.substr(httpRequest.find(" ") + 1);
     HeaderInfos["query"] = GetquerySting(HeaderInfos["URI"]);
 	HeaderInfos["VERSION"] = httpRequest.substr(0, httpRequest.find("\r\n"));
@@ -349,6 +347,7 @@ void	matchTheLocation(Client& client, std::vector<t_server> servers)
 	for(size_t i = 0; i < servers.size(); ++i)
 	{
         std::vector<t_location>::iterator it = getTheLocation(client, servers[i]);
+        client.server = servers[i];
 		if(it != servers[i].locations.end())
 		{
 			isfounded = 1;
@@ -491,7 +490,7 @@ void Request::exec_cgi(Client &client)
                 dup2(fd2, 0);
 	    	if(execve(arg[0], arg, env) == -1)
                 std::cout << "execve failure" <<std::endl;
-            exit(1);
+            exit(10);
 	    }
         client.is_cgi = true;
     }
@@ -499,6 +498,8 @@ void Request::exec_cgi(Client &client)
     waitpid(client.cgi_pid, &status, 0);
     if(WIFEXITED(status))
     {
+        if(WEXITSTATUS(status) == 10)
+            sendResponse(500, client);
         free_all();
         free(arg[0]);
         free(arg[1]);
@@ -525,7 +526,6 @@ void Request::exec_cgi(Client &client)
                 sendResponse(Rvalue, client);
             header.append("Content-Length: " + s.str() + "\r\n");
             client.cgi_finished = true;
-            std::cout<<"hanananan\n";
         }
     }
 }

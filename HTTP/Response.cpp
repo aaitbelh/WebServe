@@ -6,12 +6,12 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 10:39:51 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/22 21:48:44 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/23 21:22:23 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes.hpp"
-#include "Response.hpp"
+#include "../HEADERS/includes.hpp"
+#include "../HEADERS/Response.hpp"
 void Response::fillTheBody(Client &client)
 {    
     std::string body;
@@ -121,7 +121,7 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
     header = request["VERSION"];
     if(S_ISDIR(buffer.st_mode))
     {
-        if(!client.GetClientinfos().autoindex){
+        if(!client.GetClientinfos().autoindex || (!access(filename.c_str(), F_OK) && access(filename.c_str(), R_OK))){
             header += " 403 Forbiden\r\n";
             filename = client.server.error_page[403];
             client.file.close();
@@ -140,25 +140,16 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
             client.file.close();
             client.file.clear();
             client.file.open("listing-dir.html");
+            if(!client.file.is_open() || !client.file.good()){
+                sendResponse(404, client);
+            }
         }
     }
     else
     {
-        if(client.file.is_open() && !access(filename.c_str(), R_OK))
+        if(!access(filename.c_str(), F_OK) && !access(filename.c_str(), R_OK))
             header += " 200 OK\r\n";
-		else if(!client.file.is_open())
-		{
-            header += " 404 Not Found\r\n";
-            filename = client.server.error_page[404];
-            client.file.close();
-            client.file.clear();
-            client.file.open(filename);
-			if(!client.server.error_page.count(404) || (!client.file.is_open() || !client.file.good())){
-                *Rvalue = 404;
-                return "";
-            }
-        }
-		else
+		else if(!access(filename.c_str(), F_OK) && access(filename.c_str(), R_OK))
 		{
             header += " 403 Forbiden\r\n";
             filename = client.server.error_page[403];
@@ -170,6 +161,18 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
                 return "";
             }
 		}
+		else
+		{
+            header += " 404 Not Found\r\n";
+            filename = client.server.error_page[404];
+            client.file.close();
+            client.file.clear();
+            client.file.open(filename);
+			if(!client.server.error_page.count(404) || (!client.file.is_open() || !client.file.good())){
+                *Rvalue = 404;
+                return "";
+            }
+        }
     }
     stat(filename.c_str(), &buffer);
     header.append("Connection: close\r\n");
@@ -190,14 +193,30 @@ std::string setInfos_header(Client &client, std::string filename, int *Rvalue)
 }
 void Response::fillTheHeader(Client &client)
 {
-    
-	checkRediraction(client);
-    std::string filename = find_filename(client);
-    if(!std::ifstream(filename.c_str()).is_open() && !std::ifstream(filename.c_str()).good())
-        filename = client.server.error_page[404];
     int Rvalue;
+    std::string filename = find_filename(client);
     if((this->getFileType(filename) == "text/php"  && client.GetClientinfos().cgi_pass.count("php")) || (this->getFileType(filename) == "text/perl" && client.GetClientinfos().cgi_pass.count("pl")))
     {
+        if(!access(filename.c_str(), F_OK) && access(filename.c_str(), R_OK))
+        {
+            if(!client.server.error_page.count(403))
+                sendResponse(403, client);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[403], &Rvalue);   
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 403 Forbiden");
+            if(Rvalue)
+                sendResponse(403, client);
+            return ;
+        }
+        else if(access(filename.c_str(), F_OK))
+        {
+            if(!client.server.error_page.count(404))
+                sendResponse(404, client);
+            client.getRes().getHeader() = setInfos_header(client, client.server.error_page[404], &Rvalue);   
+            changeTheHeaderby(client, client.getHeaderInfos()["VERSION"] + " 404 Not Found");
+            if(Rvalue)
+                sendResponse(404, client);
+            return ;
+        }
         client.file_path = filename;
         client.getRequest().exec_cgi(client);
     }

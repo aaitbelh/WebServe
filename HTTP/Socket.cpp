@@ -6,14 +6,13 @@
 /*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/20 09:42:58 by ael-hayy          #+#    #+#             */
-/*   Updated: 2023/05/23 14:05:26 by aaitbelh         ###   ########.fr       */
+/*   Updated: 2023/05/23 21:13:29 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
-#include "Socket.hpp"
-#include <string.h>
+#include "../HEADERS/Socket.hpp"
 
 Socket::Socket(std::string host, std::string service):socketfd(-1)
 {
@@ -26,7 +25,6 @@ Socket::~Socket()
 }
 void  Socket::operator()(std::string host, std::string service)
 {
-    std::cout<<"host: "<<host<<std::endl;
 	creatSocket(host, service);
 }
 
@@ -111,7 +109,6 @@ int		acceptNewConnictions(fd_set *readSet, fd_set *writeSet, SOCKET socketListen
 	if (FD_ISSET(socketListen, readSet))
 	{
 		Client  client;
-        std::cout<<"socketListen....: "<<socketListen<<std::endl;
 		SOCKET sock = accept(socketListen, (struct sockaddr *)&(client.getAddress()), &(const_cast<socklen_t&>(client.getAddrtLen())));
 		client.setSocket(sock);
 		if (client.getSocket() <= 0)
@@ -163,8 +160,10 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                 if (request.getHeaderInfos()["METHOD"] ==  "")
                 {
                     request.parseInfos(i, clientList);
-                    client.requestvalid = client.getRequest().checkRequest_validation(client);
                     request.setAllinfos(client);
+                    client.requestvalid = client.getRequest().checkRequest_validation(client);
+                    if(!client.requestvalid)
+	                    client.getRes().checkRediraction(client);
                     if(!client.getRequest().isAllowedMethod(client))
                     {
                         int Rvalue = 0;
@@ -198,7 +197,10 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
                             if (i->getStatus() == 413)
                                 remove(request.getMyFilename().c_str());
                             else
+                            {
+                                client.getStatus() = 200;
                                 request.getMyfile().close();
+                            }
                         }
                         sendResponse(i->getStatus(), client);
                     }
@@ -207,7 +209,7 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
             }
             client.writable = 1;
         }
-        if ((client.getHeaderInfos()["METHOD"] != "POST" && !client.requestvalid)  && FD_ISSET(client.getSocket(), writeSet) && client.writable)
+        if (client.requestvalid || ((client.getHeaderInfos()["METHOD"] != "POST")  && FD_ISSET(client.getSocket(), writeSet) && client.writable))
         {
             if(client.getHeaderInfos()["METHOD"] == "GET" && !client.requestvalid)
                 handlGetRequest(client);
@@ -219,7 +221,6 @@ int		acceptREADsocket(fd_set *readSet, fd_set *writeSet, Client& client, std::li
     }
     catch (std::exception)
     {
-        std::cout<<"client closed"<<std::endl;
         close(client.getSocket());
         clientList.erase(i);
     }
@@ -238,11 +239,15 @@ void 			sendResponse(int status, Client& client)
 	status_code[__NOTIMPLEMENTED] = " 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>501 Not Implemented</h1></body></html>";
 	status_code[__CONFLICT] = " 409 Conflict\r\nContent-Type: text/html\r\nContent-Length: 47\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>409 Conflict</h1></body></html>";
 	status_code[__NOCONTENT] = " 204 No Content\r\nContent-Type: text/html\r\nContent-Length: 49\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>204 No Content</h1></body></html>";
-	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
-    status_code[414] = " 414 Request-URI Too Long\r\nContent-Type: text/html\r\nContent-Length: 54\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>414 Request-URI Too Long</h1></body></html>";
+	status_code[__REQUESTTOOLARGE] = " 413 Request Entity Too Large\r\nContent-Type: text/html\r\nContent-Length: 63\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>413 Request Entity Too Large</h1></body></html>";
+    status_code[414] = " 414 Request-URI-Long\r\nContent-Type: text/html\r\nContent-Length: 59\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>414 Request-URI Too Long</h1></body></html>";
+    status_code[500] = " 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 60\r\nConnection: close\r\nServer: Webserv/1.0\r\n\r\n<html><body><h1>500 Internal Server Error</h1></body></html>";
 	std::string req = status_code[status];
 	req.insert(0, client.getHeaderInfos()["VERSION"]);
-    req.replace(req.find("Webserv/1.0"), 9, client.GetClientinfos().server_name);
+    std::string servername = client.GetClientinfos().server_name;
+    if(servername.empty())
+        servername = "Webserv/1.0";
+    req.replace(req.find("Webserv/1.0"), 11, servername);
 	int r = send(client.getSocket(), req.c_str(),  req.length(), 0);
 	throw std::exception();
 }

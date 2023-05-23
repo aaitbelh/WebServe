@@ -13,7 +13,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 #include "includes.hpp"
-#include "pars/parsing.hpp"
+#include "../pars/parsing.hpp"
 
 #define __BADREQUEST 400
 #define __FORBIDDEN 403

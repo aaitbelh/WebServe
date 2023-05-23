@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mamellal <mamellal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaitbelh <aaitbelh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 22:12:50 by mamellal          #+#    #+#             */
-/*   Updated: 2023/05/23 12:14:01 by mamellal         ###   ########.fr       */
+/*   Updated: 2023/05/23 18:49:20 by aaitbelh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -349,7 +349,6 @@ void ParsConf::exec_cgi()
 		dup2(fd, 1);
 		close(fd);
 		execve(arg[0], arg, NULL);
-		std::cout<<"hnaaaaa aaa\n";
 	}
 	wait(NULL);
 }
